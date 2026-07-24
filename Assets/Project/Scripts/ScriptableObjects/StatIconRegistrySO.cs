@@ -7,7 +7,6 @@ public enum StatType
     AbilityPower,
     AttackSpeed,
     MovementSpeed,
-    Lifesteal,
     Health,
     HealthRegeneration,
     Mana,

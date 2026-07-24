@@ -6,7 +6,7 @@ public class ItemSO : ScriptableObject
 {
     public enum Rarity { Common, Epic, Excellent }
     public enum Category { Combat, Survival, Chaos, Boots, Elixir, Orb }
-    public enum StatType { AttackDamage, Health, AttackSpeed, MovementSpeed, Lifesteal, AbilityPower, HealthRegen, Mana, ManaRegen, Armor, MagicDefense }
+    public enum StatType { AttackDamage, Health, AttackSpeed, MovementSpeed, AbilityPower, HealthRegen, Mana, ManaRegen, Armor, MagicDefense }
 
     [System.Serializable]
     public struct ItemStat

@@ -19,7 +19,7 @@ public class Health : MonoBehaviour
         currentHealth = maxHealth;
     }
 
-    public void TakeDamage(float amount, bool fromCorpseBomb = false, DamageType damageType = DamageType.Physical)
+    public void TakeDamage(float amount, DamageType damageType = DamageType.Physical)
     {
         if (dead) return;
 
@@ -41,8 +41,6 @@ public class Health : MonoBehaviour
 
             if (CompareTag("Enemy"))
             {
-                Vector3 deathPosition = transform.position;
-
                 if (GameManager.Instance != null)
                 {
                     GameManager.Instance.EnemyKilled();
@@ -51,19 +49,6 @@ public class Health : MonoBehaviour
                 if (WaveManager.Instance != null)
                 {
                     WaveManager.Instance.EnemyDied();
-                }
-
-                if (AugmentManager.Instance != null)
-                {
-                    if (AugmentManager.Instance.IsActive<FrenzyGlandAugmentSO>() && PlayerController.Instance != null)
-                    {
-                        PlayerController.Instance.AddFrenzyStack();
-                    }
-
-                    if (!fromCorpseBomb && AugmentManager.Instance.IsActive<CorpseBombAugmentSO>())
-                    {
-                        AugmentManager.Instance.TriggerCorpseBomb(deathPosition);
-                    }
                 }
             }
 

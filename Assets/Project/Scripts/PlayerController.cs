@@ -10,7 +10,6 @@ public class PlayerController : MonoBehaviour
     public float abilityPower = 0f;
     public float movementSpeed = 7f;
     public float attackSpeed = 0.25f;
-    public float lifeSteal = 0f;
 
     [Header("Defensive Stats")]
     public float healthRegen = 0f;
@@ -38,17 +37,6 @@ public class PlayerController : MonoBehaviour
     public float bloodstoneDamageBonus = 0f;
     public float bloodstoneTimer = 0f;
 
-    [Header("Augment Effects")]
-    public bool isHoming = false;
-    public float homingStrength = 0f;
-    public bool corpsBombActive = false;
-    public float corpsBombDamage = 0f;
-    public bool frenzyGlandActive = false;
-    public float frenzyBonusPerStack = 0f;
-
-    private const int MaxFrenzyStacks = 5;
-    private const float FrenzyDuration = 4f;
-
     private const float BarWidth = 1.4f;
     private const float BarHeight = 0.12f;
     private const float BarHeightAbove = 2.2f;
@@ -60,8 +48,6 @@ public class PlayerController : MonoBehaviour
     private Vector3 moveInput;
     private float nextFireTime;
     private bool cameraWarningShown;
-    private int frenzyStacks;
-    private float frenzyTimer;
     private float currentMana;
     private float regenTimer;
 
@@ -91,17 +77,7 @@ public class PlayerController : MonoBehaviour
 
     private float EffectiveFireInterval
     {
-        get
-        {
-            float multiplier = 1f + frenzyStacks * frenzyBonusPerStack;
-
-            if (multiplier <= 0f)
-            {
-                multiplier = 1f;
-            }
-
-            return attackSpeed / multiplier;
-        }
+        get { return attackSpeed; }
     }
 
     private void Awake()
@@ -130,7 +106,6 @@ public class PlayerController : MonoBehaviour
     {
         UpdateHealthBar();
         UpdateBloodstone();
-        UpdateFrenzy();
         UpdateRegen();
 
         bool shopOpen = ShopManager.Instance != null && ShopManager.Instance.IsShopOpen;
@@ -159,12 +134,6 @@ public class PlayerController : MonoBehaviour
         Move();
     }
 
-    public void AddFrenzyStack()
-    {
-        frenzyStacks = Mathf.Min(MaxFrenzyStacks, frenzyStacks + 1);
-        frenzyTimer = FrenzyDuration;
-    }
-
     public void AddMaxMana(float amount)
     {
         maxMana += amount;
@@ -187,20 +156,6 @@ public class PlayerController : MonoBehaviour
             if (manaRegen > 0f)
             {
                 currentMana = Mathf.Min(maxMana, currentMana + manaRegen);
-            }
-        }
-    }
-
-    private void UpdateFrenzy()
-    {
-        if (frenzyTimer > 0f)
-        {
-            frenzyTimer -= Time.deltaTime;
-
-            if (frenzyTimer <= 0f)
-            {
-                frenzyTimer = 0f;
-                frenzyStacks = 0;
             }
         }
     }
@@ -297,7 +252,7 @@ public class PlayerController : MonoBehaviour
 
             if (projectile != null)
             {
-                projectile.Setup(direction, projectileSpeed, EffectiveAttackDamage, lifeSteal);
+                projectile.Setup(direction, projectileSpeed, EffectiveAttackDamage);
             }
         }
     }

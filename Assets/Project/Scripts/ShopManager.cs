@@ -683,9 +683,6 @@ public class ShopManager : MonoBehaviour
             case ItemSO.StatType.MovementSpeed:
                 p.movementSpeed += value;
                 break;
-            case ItemSO.StatType.Lifesteal:
-                p.lifeSteal += value;
-                break;
             case ItemSO.StatType.AbilityPower:
                 p.abilityPower += value;
                 break;
@@ -744,7 +741,6 @@ public class ShopManager : MonoBehaviour
             case ItemSO.StatType.Health: return "Health";
             case ItemSO.StatType.AttackSpeed: return "Attack Speed";
             case ItemSO.StatType.MovementSpeed: return "Movement Speed";
-            case ItemSO.StatType.Lifesteal: return "Lifesteal";
             case ItemSO.StatType.AbilityPower: return "Ability Power";
             case ItemSO.StatType.HealthRegen: return "Health Regeneration";
             case ItemSO.StatType.Mana: return "Mana";
@@ -760,11 +756,6 @@ public class ShopManager : MonoBehaviour
     {
         string sign = value >= 0f ? "+" : "-";
         float abs = Mathf.Abs(value);
-
-        if (type == ItemSO.StatType.Lifesteal)
-        {
-            return sign + Mathf.RoundToInt(abs * 100f) + "%";
-        }
 
         if (type == ItemSO.StatType.MovementSpeed || type == ItemSO.StatType.AttackSpeed)
         {

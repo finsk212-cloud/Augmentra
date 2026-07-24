@@ -12,8 +12,6 @@ public class AugmentManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI subtitleText;
 
-    private const float CorpseBombRadius = 3f;
-
     private List<AugmentSO> augmentPool;
     private AugmentSO selectedAugment;
     private readonly HashSet<System.Type> activeAugmentTypes = new HashSet<System.Type>();
@@ -112,37 +110,5 @@ public class AugmentManager : MonoBehaviour
         }
 
         selectedAugment.Apply(player);
-    }
-
-    public void TriggerCorpseBomb(Vector3 position)
-    {
-        if (!IsActive<CorpseBombAugmentSO>() || PlayerController.Instance == null)
-        {
-            return;
-        }
-
-        float damage = PlayerController.Instance.corpsBombDamage;
-
-        if (damage <= 0f)
-        {
-            return;
-        }
-
-        Collider[] hits = Physics.OverlapSphere(position, CorpseBombRadius);
-
-        foreach (Collider hit in hits)
-        {
-            if (!hit.CompareTag("Enemy"))
-            {
-                continue;
-            }
-
-            Health health = hit.GetComponent<Health>();
-
-            if (health != null)
-            {
-                health.TakeDamage(damage, true);
-            }
-        }
     }
 }

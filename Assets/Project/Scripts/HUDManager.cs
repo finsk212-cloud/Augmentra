@@ -154,7 +154,7 @@ public class HUDManager : MonoBehaviour
         statTexts[1].text = player.abilityPower.ToString("0");
         statTexts[2].text = player.attackSpeed.ToString("0.0");
         statTexts[3].text = player.movementSpeed.ToString("0.0");
-        statTexts[4].text = Mathf.RoundToInt(player.lifeSteal * 100f) + "%";
+        statTexts[4].text = string.Empty;
         statTexts[5].text = player.healthRegen.ToString("0.0");
         statTexts[6].text = player.Mana.ToString("0");
         statTexts[7].text = player.manaRegen.ToString("0.0");
