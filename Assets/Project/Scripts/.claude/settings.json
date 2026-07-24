@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/faust/Desktop/Game dev/Projects/Augmentra/Assets/Project/Augments/**)"
+    ]
+  }
+}

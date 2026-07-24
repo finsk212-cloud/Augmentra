@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(@\\(\"Assets\\\\Scripts\",\"Assets\\\\Project\\\\Scripts\"\\) | ForEach-Object { $f=$_; Write-Output \"=== $f ===\"; Get-ChildItem -Path $f -File | Select-Object Name, Length, LastWriteTime | Format-Table -AutoSize | Out-String })"
+    ]
+  }
+}

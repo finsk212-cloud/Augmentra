@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7c1f0e94b2d4d6fae31c5b908d7e210, type: 3}
+  m_Name: Hollow Point
+  m_EditorClassIdentifier: 
+  itemName: Hollow Point
+  description: 
+  icon: {fileID: 21300000, guid: e8f05716b7426c240af6e901b899e527, type: 3}
+  flavourText: 
+  cost: 1000
+  rarity: 1
+  category: 0
+  stats:
+  - statType: 0
+    statValue: 65
+    statLabel: Attack Damage
+  passiveName: Penetration
+  passiveDescription: Bullets pierce through 2 enemies
