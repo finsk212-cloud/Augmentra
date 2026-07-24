@@ -25,8 +25,9 @@ public class Projectile : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (AugmentManager.Instance == null || !AugmentManager.Instance.IsActive("homing_instinct")) return;
+        if (AugmentManager.Instance == null || !AugmentManager.Instance.IsActive<HomingInstinctAugmentSO>()) return;
         if (PlayerController.Instance == null) return;
+        if (!PlayerController.Instance.isHoming) return;
 
         float strength = PlayerController.Instance.homingStrength;
 

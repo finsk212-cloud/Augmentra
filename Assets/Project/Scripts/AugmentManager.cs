@@ -16,7 +16,7 @@ public class AugmentManager : MonoBehaviour
 
     private List<AugmentSO> augmentPool;
     private AugmentSO selectedAugment;
-    private readonly HashSet<string> activeTags = new HashSet<string>();
+    private readonly HashSet<System.Type> activeAugmentTypes = new HashSet<System.Type>();
 
     private void Awake()
     {
@@ -38,9 +38,9 @@ public class AugmentManager : MonoBehaviour
         }
     }
 
-    public bool IsActive(string effectTag)
+    public bool IsActive<T>() where T : AugmentSO
     {
-        return activeTags.Contains(effectTag);
+        return activeAugmentTypes.Contains(typeof(T));
     }
 
     public void ShowAugmentPicker(int waveNumber)
@@ -102,7 +102,7 @@ public class AugmentManager : MonoBehaviour
 
     private void ApplyAugmentEffect()
     {
-        activeTags.Add(selectedAugment.effectTag);
+        activeAugmentTypes.Add(selectedAugment.GetType());
 
         PlayerController player = PlayerController.Instance;
 
@@ -111,32 +111,12 @@ public class AugmentManager : MonoBehaviour
             return;
         }
 
-        switch (selectedAugment.effectTag)
-        {
-            case "homing_instinct":
-                player.isHoming = true;
-                player.homingStrength = selectedAugment.value;
-                break;
-            case "corpse_bomb":
-                player.corpsBombActive = true;
-                player.corpsBombDamage = selectedAugment.value;
-                break;
-            case "frenzy_gland":
-                player.frenzyGlandActive = true;
-                player.frenzyBonusPerStack = selectedAugment.value;
-                break;
-            case "vampiric_round":
-                player.lifeSteal = selectedAugment.value;
-                break;
-            case "predator_legs":
-                player.movementSpeed *= 1f + selectedAugment.value;
-                break;
-        }
+        selectedAugment.Apply(player);
     }
 
     public void TriggerCorpseBomb(Vector3 position)
     {
-        if (!IsActive("corpse_bomb") || PlayerController.Instance == null)
+        if (!IsActive<CorpseBombAugmentSO>() || PlayerController.Instance == null)
         {
             return;
         }

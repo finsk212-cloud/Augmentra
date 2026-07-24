@@ -55,12 +55,12 @@ public class Health : MonoBehaviour
 
                 if (AugmentManager.Instance != null)
                 {
-                    if (AugmentManager.Instance.IsActive("frenzy_gland") && PlayerController.Instance != null)
+                    if (AugmentManager.Instance.IsActive<FrenzyGlandAugmentSO>() && PlayerController.Instance != null)
                     {
                         PlayerController.Instance.AddFrenzyStack();
                     }
 
-                    if (!fromCorpseBomb && AugmentManager.Instance.IsActive("corpse_bomb"))
+                    if (!fromCorpseBomb && AugmentManager.Instance.IsActive<CorpseBombAugmentSO>())
                     {
                         AugmentManager.Instance.TriggerCorpseBomb(deathPosition);
                     }
