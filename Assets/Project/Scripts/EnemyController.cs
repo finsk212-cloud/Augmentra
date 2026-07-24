@@ -103,7 +103,7 @@ public class EnemyController : MonoBehaviour
 
         if (quadCollider != null)
         {
-            Destroy(quadCollider);
+            DestroyImmediate(quadCollider);
         }
 
         quad.transform.SetParent(barRoot, false);

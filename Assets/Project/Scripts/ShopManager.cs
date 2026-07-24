@@ -846,7 +846,7 @@ public class ShopManager : MonoBehaviour
 
     private Sprite Knob()
     {
-        return Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
+        return null;
     }
 
     private static Color Brighten(Color c, float amount)

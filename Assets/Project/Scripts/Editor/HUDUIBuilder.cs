@@ -29,7 +29,6 @@ public static class HUDUIBuilder
         }
 
         Sprite uiSprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
-        Sprite knob = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
 
         GameObject oldCanvas = GameObject.Find("HUDCanvas");
         if (oldCanvas != null)
@@ -59,7 +58,7 @@ public static class HUDUIBuilder
 
         BuildTopBar(canvasGo.transform, font, uiSprite, hud);
         BuildAbilityBar(canvasGo.transform, font, uiSprite);
-        BuildGold(canvasGo.transform, font, knob, hud);
+        BuildGold(canvasGo.transform, font, uiSprite, hud);
         BuildInventory(canvasGo.transform, uiSprite, hud);
         BuildStats(canvasGo.transform, font, uiSprite, hud);
         BuildAnnouncement(canvasGo.transform, font, hud);

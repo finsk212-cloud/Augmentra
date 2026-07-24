@@ -15,9 +15,14 @@ public class GameManager : MonoBehaviour
 
     public GameObject goldPopupPrefab;
 
-    public bool IsChoosingUpgrade
+    public enum GameState { Playing, ChoosingAugment, GameOver }
+    public GameState CurrentState { get; private set; } = GameState.Playing;
+
+    public bool IsChoosingUpgrade => CurrentState == GameState.ChoosingAugment;
+
+    public void SetState(GameState newState)
     {
-        get { return false; }
+        CurrentState = newState;
     }
 
     private void Awake()
@@ -85,6 +90,37 @@ public class GameManager : MonoBehaviour
 
         Vector3 spawnPosition = playerTransform.position + Vector3.up * 2f;
         Instantiate(goldPopupPrefab, spawnPosition, Quaternion.identity);
+    }
+
+    public void PlayerDied()
+    {
+        if (CurrentState == GameState.GameOver) return;
+
+        SetState(GameState.GameOver);
+        Time.timeScale = 0f;
+
+        if (WaveManager.Instance != null)
+        {
+            WaveManager.Instance.StopSpawning();
+        }
+
+        if (GameOverUI.Instance != null)
+        {
+            GameOverUI.Instance.Show(kills, gold, level);
+        }
+    }
+
+    public void RestartRun()
+    {
+        Time.timeScale = 1f;
+        UnityEngine.SceneManagement.SceneManager.LoadScene(
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+    }
+
+    public void ReturnToMainMenu()
+    {
+        Time.timeScale = 1f;
+        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
     }
 
     private void OnDestroy()

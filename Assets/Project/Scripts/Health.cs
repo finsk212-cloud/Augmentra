@@ -50,9 +50,14 @@ public class Health : MonoBehaviour
                 {
                     WaveManager.Instance.EnemyDied();
                 }
-            }
 
-            Destroy(gameObject);
+                Destroy(gameObject);
+            }
+            else if (CompareTag("Player"))
+            {
+                GameManager.Instance?.PlayerDied();
+                gameObject.SetActive(false);
+            }
         }
     }
 

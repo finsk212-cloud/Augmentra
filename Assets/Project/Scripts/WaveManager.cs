@@ -24,6 +24,7 @@ public class WaveManager : MonoBehaviour
     private int currentWave;
     private int enemiesAlive;
     private float countdownRemaining;
+    private bool stopped;
 
     private void Awake()
     {
@@ -51,15 +52,27 @@ public class WaveManager : MonoBehaviour
         StartCoroutine(RunWave());
     }
 
+    public void StopSpawning()
+    {
+        stopped = true;
+        StopAllCoroutines();
+    }
+
     private IEnumerator RunWave()
     {
+        if (stopped) yield break;
+
         yield return StartCoroutine(Countdown());
+        if (stopped) yield break;
+
         yield return StartCoroutine(SpawnWave());
+        if (stopped) yield break;
 
         state = State.WaitingForClear;
 
         while (enemiesAlive > 0)
         {
+            if (stopped) yield break;
             yield return null;
         }
 

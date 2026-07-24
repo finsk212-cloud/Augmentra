@@ -43,7 +43,26 @@ public class AugmentManager : MonoBehaviour
 
     public void ShowAugmentPicker(int waveNumber)
     {
+        List<AugmentSO> available = new List<AugmentSO>(augmentPool);
+
+        if (available.Count == 0)
+        {
+            // Nothing to offer right now - skip the picker entirely and let
+            // the normal post-picker flow continue uninterrupted.
+            if (ShopManager.Instance != null)
+            {
+                ShopManager.Instance.OpenBreak();
+            }
+            else if (WaveManager.Instance != null)
+            {
+                WaveManager.Instance.StartCountdown();
+            }
+
+            return;
+        }
+
         Time.timeScale = 0f;
+        GameManager.Instance?.SetState(GameManager.GameState.ChoosingAugment);
 
         if (titleText != null)
         {
@@ -65,7 +84,6 @@ public class AugmentManager : MonoBehaviour
             Destroy(cardContainer.GetChild(i).gameObject);
         }
 
-        List<AugmentSO> available = new List<AugmentSO>(augmentPool);
         int cards = Mathf.Min(3, available.Count);
 
         for (int i = 0; i < cards; i++)
@@ -90,6 +108,7 @@ public class AugmentManager : MonoBehaviour
             augmentOverlay.SetActive(false);
         }
 
+        GameManager.Instance?.SetState(GameManager.GameState.Playing);
         Time.timeScale = 1f;
 
         if (ShopManager.Instance != null)
