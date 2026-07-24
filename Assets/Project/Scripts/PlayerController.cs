@@ -8,6 +8,7 @@ using Random = UnityEngine.Random;
 public class PlayerController : MonoBehaviour
 {
     public static PlayerController Instance { get; private set; }
+    public static event Action<PlayerController> PlayerReady;
 
     [Header("Stats")]
     public float attackDamage = 10f;
@@ -107,6 +108,20 @@ public class PlayerController : MonoBehaviour
 
         WarnIfCameraMissing();
         CreateHealthBar();
+    }
+
+    private void Start()
+    {
+        // Start runs after every component's Awake, including Health initialization.
+        PlayerReady?.Invoke(this);
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
     }
 
     private void Update()

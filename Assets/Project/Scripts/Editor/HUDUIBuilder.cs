@@ -12,6 +12,7 @@ public static class HUDUIBuilder
 {
     private const string GameplayScenePath = "Assets/Scenes/SampleScene.unity";
     private const string FontPath = "Assets/Resources/Fonts/Nexa-ExtraLight SDF.asset";
+    private const string BarFontPath = "Assets/Project/Fonts/Nexa-Heavy SDF.asset";
     private const string DamageNumberPrefabPath =
         "Assets/Project/Prefabs/FloatingDamageNumber.prefab";
     private const string EnemyPrefabPath = "Assets/Project/Prefabs/Enemy.prefab";
@@ -19,12 +20,13 @@ public static class HUDUIBuilder
     private const string HudManagerName = "HUDManager";
     private const string DamagePoolName = "FloatingDamagePool";
 
-    private static readonly Color PanelDark = Hex("#0D1014D8");
+    private static readonly Color PanelDark = Hex("#0D101466");
     private static readonly Color PanelBorder = Hex("#3A404C");
-    private static readonly Color BarBackground = Hex("#171B22");
-    private static readonly Color HealthColor = Hex("#B52E3E");
-    private static readonly Color ManaColor = Hex("#337FC4");
-    private static readonly Color ExperienceColor = Hex("#D0A842");
+    private static readonly Color BarFrame = Hex("#3A4452");
+    private static readonly Color BarBackground = Hex("#090D13");
+    private static readonly Color HealthColor = Hex("#B33A4E");
+    private static readonly Color ManaColor = Hex("#307FB7");
+    private static readonly Color ExperienceColor = Hex("#C79B48");
     private static readonly Color GoldColor = Hex("#F2C759");
     private static readonly Color SoftWhite = Hex("#EDF0F5");
     private static readonly Color SoftGrey = Hex("#A6ADB8");
@@ -51,6 +53,8 @@ public static class HUDUIBuilder
         public CanvasGroup vignette;
         public Image[] inventoryIcons;
         public Image[] inventoryBorders;
+        public GameObject inventoryRoot;
+        public GameObject[] inventorySlots;
     }
 
     [MenuItem("Tools/Augmentra/Setup Gameplay HUD")]
@@ -87,8 +91,8 @@ public static class HUDUIBuilder
         }
 
         Debug.Log(
-            "Gameplay HUD setup complete. SampleScene was saved with the new event-driven HUD, " +
-            "player/enemy feedback, pooled damage numbers, and wave announcements. " +
+            "Gameplay HUD setup complete. SampleScene was saved with the compact event-driven HUD, " +
+            "layered polished bars, hidden empty inventory slots, existing feedback, and wave announcements. " +
             "The command is idempotent and safe to run again.");
     }
 
@@ -98,15 +102,24 @@ public static class HUDUIBuilder
         SetupGameplayHud();
     }
 
+    [MenuItem("Tools/Augmentra/Repair Gameplay HUD")]
+    public static void RepairGameplayHud()
+    {
+        SetupGameplayHud();
+    }
+
     private static void BuildGameplayScene()
     {
         EditorUtility.DisplayProgressBar("Augmentra HUD", "Loading gameplay scene...", 0.1f);
         Scene scene = EditorSceneManager.OpenScene(GameplayScenePath, OpenSceneMode.Single);
         TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+        TMP_FontAsset barFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(BarFontPath);
 
-        if (font == null)
+        if (font == null || barFont == null)
         {
-            throw new FileNotFoundException("Required project font was not found.", FontPath);
+            throw new FileNotFoundException(
+                "A required project font was not found.",
+                font == null ? FontPath : BarFontPath);
         }
 
         PlayerController player = Object.FindFirstObjectByType<PlayerController>();
@@ -139,7 +152,7 @@ public static class HUDUIBuilder
 
         EditorUtility.DisplayProgressBar("Augmentra HUD", "Building responsive HUD...", 0.35f);
         GameObject canvasObject = CreateCanvas();
-        HudParts parts = BuildHud(canvasObject.transform, font);
+        HudParts parts = BuildHud(canvasObject.transform, font, barFont);
 
         GameObject managerObject = new GameObject(
             HudManagerName,
@@ -150,6 +163,8 @@ public static class HUDUIBuilder
         HUDManager inventoryManager = managerObject.GetComponent<HUDManager>();
         inventoryManager.inventoryIcons = parts.inventoryIcons;
         inventoryManager.inventoryBorders = parts.inventoryBorders;
+        inventoryManager.inventoryRoot = parts.inventoryRoot;
+        inventoryManager.inventorySlots = parts.inventorySlots;
 
         GameplayHUD gameplayHud = managerObject.GetComponent<GameplayHUD>();
         gameplayHud.Configure(
@@ -193,12 +208,15 @@ public static class HUDUIBuilder
         Selection.activeGameObject = managerObject;
     }
 
-    private static HudParts BuildHud(Transform canvas, TMP_FontAsset font)
+    private static HudParts BuildHud(
+        Transform canvas,
+        TMP_FontAsset font,
+        TMP_FontAsset barFont)
     {
         HudParts parts = new HudParts();
-        BuildPlayerPanel(canvas, font, parts);
+        BuildPlayerPanel(canvas, barFont, parts);
         BuildWavePanel(canvas, font, parts);
-        BuildResourcePanel(canvas, font, parts);
+        BuildResourcePanel(canvas, font, barFont, parts);
         BuildInventory(canvas, parts);
         parts.announcement = BuildAnnouncement(canvas, font);
         parts.vignette = BuildDamageVignette(canvas);
@@ -207,43 +225,34 @@ public static class HUDUIBuilder
 
     private static void BuildPlayerPanel(Transform canvas, TMP_FontAsset font, HudParts parts)
     {
-        GameObject panel = AddPanel(
-            "PlayerStatus",
-            canvas,
+        GameObject group = NewUI("PlayerStatus", canvas);
+        SetRect(
+            group.GetComponent<RectTransform>(),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
             new Vector2(24f, -24f),
-            new Vector2(420f, 142f));
-
-        TextMeshProUGUI title = AddText(
-            "PlayerLabel", panel.transform, font, "PLAYER", 16f, FontStyles.Bold, SoftGrey);
-        SetRect(
-            title.rectTransform,
-            new Vector2(0f, 1f),
-            new Vector2(0f, 1f),
-            new Vector2(0f, 1f),
-            new Vector2(18f, -12f),
-            new Vector2(200f, 24f));
-        title.alignment = TextAlignmentOptions.Left;
+            new Vector2(270f, 58f));
 
         BarParts health = AddBar(
             "HealthBar",
-            panel.transform,
+            group.transform,
             font,
-            "HEALTH",
+            "HP",
             HealthColor,
-            new Vector2(18f, -45f),
-            new Vector2(384f, 34f),
-            true);
+            Vector2.zero,
+            new Vector2(270f, 26f),
+            true,
+            false);
         BarParts mana = AddBar(
             "ManaBar",
-            panel.transform,
+            group.transform,
             font,
-            "MANA",
+            "MP",
             ManaColor,
-            new Vector2(18f, -91f),
-            new Vector2(384f, 34f),
+            new Vector2(0f, -34f),
+            new Vector2(270f, 22f),
+            false,
             false);
         parts.healthBar = health.progressBar;
         parts.manaBar = mana.progressBar;
@@ -251,14 +260,20 @@ public static class HUDUIBuilder
 
     private static void BuildWavePanel(Transform canvas, TMP_FontAsset font, HudParts parts)
     {
-        GameObject panel = AddPanel(
-            "WaveStatus",
-            canvas,
+        GameObject panel = NewUI("WaveStatus", canvas);
+        SetRect(
+            panel.GetComponent<RectTransform>(),
             new Vector2(0.5f, 1f),
             new Vector2(0.5f, 1f),
             new Vector2(0.5f, 1f),
-            new Vector2(0f, -24f),
-            new Vector2(500f, 116f));
+            new Vector2(0f, -18f),
+            new Vector2(360f, 76f));
+        Image backing = AddImage(
+            panel,
+            new Color(PanelDark.r, PanelDark.g, PanelDark.b, 0.28f),
+            BuiltinSprite(),
+            true);
+        backing.raycastTarget = false;
 
         parts.waveText = AddText(
             "WaveText", panel.transform, font, "WAVE 1", 26f, FontStyles.Bold, SoftWhite);
@@ -267,8 +282,8 @@ public static class HUDUIBuilder
             new Vector2(0.5f, 1f),
             new Vector2(0.5f, 1f),
             new Vector2(0.5f, 1f),
-            new Vector2(0f, -12f),
-            new Vector2(460f, 34f));
+            new Vector2(0f, -4f),
+            new Vector2(340f, 34f));
 
         parts.enemyText = AddText(
             "EnemyCountText",
@@ -283,8 +298,8 @@ public static class HUDUIBuilder
             new Vector2(0.5f, 1f),
             new Vector2(0.5f, 1f),
             new Vector2(0.5f, 1f),
-            new Vector2(0f, -50f),
-            new Vector2(460f, 26f));
+            new Vector2(0f, -36f),
+            new Vector2(340f, 22f));
 
         parts.countdownText = AddText(
             "CountdownText",
@@ -299,11 +314,15 @@ public static class HUDUIBuilder
             new Vector2(0.5f, 1f),
             new Vector2(0.5f, 1f),
             new Vector2(0.5f, 1f),
-            new Vector2(0f, -79f),
-            new Vector2(460f, 24f));
+            new Vector2(0f, -57f),
+            new Vector2(340f, 18f));
     }
 
-    private static void BuildResourcePanel(Transform canvas, TMP_FontAsset font, HudParts parts)
+    private static void BuildResourcePanel(
+        Transform canvas,
+        TMP_FontAsset font,
+        TMP_FontAsset barFont,
+        HudParts parts)
     {
         GameObject panel = AddPanel(
             "RunStatus",
@@ -312,57 +331,70 @@ public static class HUDUIBuilder
             Vector2.one,
             Vector2.one,
             new Vector2(-24f, -24f),
-            new Vector2(380f, 156f));
+            new Vector2(350f, 76f));
 
-        parts.goldText = AddValueRow(
-            panel.transform, font, "Gold", "GOLD", "0", GoldColor, -16f);
-        parts.levelText = AddValueRow(
-            panel.transform, font, "Level", "LEVEL", "LEVEL 1", SoftWhite, -48f);
-        parts.killsText = AddValueRow(
-            panel.transform, font, "Kills", "COMBAT", "0 KILLS", SoftGrey, -80f);
+        AddCompactLabel(panel.transform, font, "GoldLabel", "GOLD", new Vector2(12f, -8f), 48f);
+        parts.goldText = AddCompactValue(
+            panel.transform, font, "GoldValue", "0", GoldColor, new Vector2(62f, -8f), 72f);
+        AddCompactLabel(panel.transform, font, "LevelLabel", "LEVEL", new Vector2(154f, -8f), 58f);
+        parts.levelText = AddCompactValue(
+            panel.transform, font, "LevelValue", "1", SoftWhite, new Vector2(214f, -8f), 40f);
+        AddCompactLabel(panel.transform, font, "KillsLabel", "KILLS", new Vector2(268f, -8f), 48f);
+        parts.killsText = AddCompactValue(
+            panel.transform, font, "KillsValue", "0", SoftWhite, new Vector2(318f, -8f), 24f);
 
         BarParts xp = AddBar(
             "ExperienceBar",
             panel.transform,
-            font,
-            "EXPERIENCE",
+            barFont,
+            "XP",
             ExperienceColor,
-            new Vector2(18f, -112f),
-            new Vector2(344f, 28f),
-            false);
+            new Vector2(12f, -50f),
+            new Vector2(205f, 14f),
+            false,
+            true);
         parts.experienceBar = xp.progressBar;
     }
 
-    private static TextMeshProUGUI AddValueRow(
+    private static void AddCompactLabel(
         Transform parent,
         TMP_FontAsset font,
         string name,
-        string label,
-        string value,
-        Color valueColor,
-        float y)
+        string content,
+        Vector2 position,
+        float width)
     {
         TextMeshProUGUI labelText = AddText(
-            name + "Label", parent, font, label, 15f, FontStyles.Bold, SoftGrey);
+            name, parent, font, content, 13f, FontStyles.Bold, SoftGrey);
         SetRect(
             labelText.rectTransform,
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
-            new Vector2(18f, y),
-            new Vector2(150f, 26f));
+            position,
+            new Vector2(width, 24f));
         labelText.alignment = TextAlignmentOptions.Left;
+    }
 
+    private static TextMeshProUGUI AddCompactValue(
+        Transform parent,
+        TMP_FontAsset font,
+        string name,
+        string content,
+        Color color,
+        Vector2 position,
+        float width)
+    {
         TextMeshProUGUI valueText = AddText(
-            name + "Value", parent, font, value, 17f, FontStyles.Bold, valueColor);
+            name, parent, font, content, 15f, FontStyles.Bold, color);
         SetRect(
             valueText.rectTransform,
-            new Vector2(1f, 1f),
-            new Vector2(1f, 1f),
-            new Vector2(1f, 1f),
-            new Vector2(-18f, y),
-            new Vector2(190f, 26f));
-        valueText.alignment = TextAlignmentOptions.Right;
+            new Vector2(0f, 1f),
+            new Vector2(0f, 1f),
+            new Vector2(0f, 1f),
+            position,
+            new Vector2(width, 24f));
+        valueText.alignment = TextAlignmentOptions.Left;
         return valueText;
     }
 
@@ -374,8 +406,11 @@ public static class HUDUIBuilder
         Color fillColor,
         Vector2 topLeftPosition,
         Vector2 size,
-        bool hasWarning)
+        bool hasWarning,
+        bool valueOutside)
     {
+        const float innerTrackInset = 1f;
+
         GameObject root = NewUI(name, parent);
         SetRect(
             root.GetComponent<RectTransform>(),
@@ -384,39 +419,69 @@ public static class HUDUIBuilder
             new Vector2(0f, 1f),
             topLeftPosition,
             size);
-        Image background = AddImage(root, BarBackground, BuiltinSprite(), true);
-        background.raycastTarget = false;
 
-        GameObject fillObject = NewUI("Fill", root.transform);
-        StretchWithOffsets(fillObject.GetComponent<RectTransform>(), 3f, 3f, 3f, 3f);
+        GameObject frameObject = NewUI("Frame", root.transform);
+        Stretch(frameObject.GetComponent<RectTransform>());
+        Image frame = AddImage(frameObject, BarFrame, BuiltinSprite(), true);
+        frame.raycastTarget = false;
+
+        GameObject trackObject = NewUI("Track", frameObject.transform);
+        StretchWithOffsets(
+            trackObject.GetComponent<RectTransform>(),
+            innerTrackInset,
+            innerTrackInset,
+            innerTrackInset,
+            innerTrackInset);
+        Image track = AddImage(trackObject, BarBackground, BuiltinSprite(), true);
+        track.raycastTarget = false;
+
+        GameObject fillArea = NewUI("FillArea", frameObject.transform);
+        StretchWithOffsets(
+            fillArea.GetComponent<RectTransform>(),
+            innerTrackInset,
+            innerTrackInset,
+            innerTrackInset,
+            innerTrackInset);
+
+        GameObject fillObject = NewUI("Fill", fillArea.transform);
+        Stretch(fillObject.GetComponent<RectTransform>());
         Image fill = AddImage(fillObject, fillColor, BuiltinSprite(), true);
-        fill.type = Image.Type.Filled;
-        fill.fillMethod = Image.FillMethod.Horizontal;
-        fill.fillOrigin = (int)Image.OriginHorizontal.Left;
-        fill.fillAmount = 1f;
         fill.raycastTarget = false;
 
-        TextMeshProUGUI labelText = AddText(
-            "Label", root.transform, font, label, 12f, FontStyles.Bold, SoftGrey);
-        SetRect(
-            labelText.rectTransform,
-            new Vector2(0f, 0.5f),
-            new Vector2(0f, 0.5f),
-            new Vector2(0f, 0.5f),
-            new Vector2(10f, 0f),
-            new Vector2(120f, size.y));
-        labelText.alignment = TextAlignmentOptions.Left;
+        TextMeshProUGUI valueText;
 
-        TextMeshProUGUI valueText = AddText(
-            "Value", root.transform, font, "100 / 100", 14f, FontStyles.Bold, SoftWhite);
-        StretchWithOffsets(valueText.rectTransform, 120f, 10f, 0f, 0f);
-        valueText.alignment = TextAlignmentOptions.Right;
+        if (valueOutside)
+        {
+            valueText = AddText(
+                "Value", parent, font, label + "  0 / 5", 12f, FontStyles.Bold, SoftWhite);
+            SetRect(
+                valueText.rectTransform,
+                new Vector2(0f, 1f),
+                new Vector2(0f, 1f),
+                new Vector2(0f, 1f),
+                new Vector2(topLeftPosition.x + size.x + 8f, topLeftPosition.y + 2f),
+                new Vector2(80f, 18f));
+            valueText.alignment = TextAlignmentOptions.Left;
+        }
+        else
+        {
+            valueText = AddText(
+                "Value",
+                frameObject.transform,
+                font,
+                label + "  100 / 100",
+                13f,
+                FontStyles.Bold,
+                SoftWhite);
+            StretchWithOffsets(valueText.rectTransform, 8f, 8f, 0f, 0f);
+            valueText.alignment = TextAlignmentOptions.Center;
+        }
 
         Image warning = null;
 
         if (hasWarning)
         {
-            GameObject warningObject = NewUI("WarningBorder", root.transform);
+            GameObject warningObject = NewUI("WarningBorder", frameObject.transform);
             Stretch(warningObject.GetComponent<RectTransform>());
             warning = AddImage(warningObject, WarningRed, BuiltinSprite(), true);
             warning.raycastTarget = false;
@@ -426,47 +491,55 @@ public static class HUDUIBuilder
         }
 
         UIProgressBar progressBar = root.AddComponent<UIProgressBar>();
-        progressBar.Configure(fill, valueText, warning, fillColor);
+        progressBar.Configure(fill, valueText, warning, fillColor, null, true, label + "  ");
         return new BarParts { progressBar = progressBar, valueText = valueText };
     }
 
     private static void BuildInventory(Transform canvas, HudParts parts)
     {
-        GameObject panel = AddPanel(
-            "Inventory",
-            canvas,
+        GameObject panel = NewUI("Inventory", canvas);
+        SetRect(
+            panel.GetComponent<RectTransform>(),
             new Vector2(1f, 1f),
             new Vector2(1f, 1f),
             new Vector2(1f, 1f),
-            new Vector2(-24f, -196f),
-            new Vector2(270f, 96f));
+            new Vector2(-24f, -110f),
+            new Vector2(244f, 36f));
 
         GridLayoutGroup grid = panel.AddComponent<GridLayoutGroup>();
-        grid.padding = new RectOffset(12, 12, 12, 12);
+        grid.padding = new RectOffset(0, 0, 0, 0);
         grid.spacing = new Vector2(8f, 0f);
-        grid.cellSize = new Vector2(34f, 68f);
+        grid.cellSize = new Vector2(34f, 34f);
         grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
         grid.constraintCount = 6;
         grid.childAlignment = TextAnchor.MiddleCenter;
 
         parts.inventoryIcons = new Image[6];
         parts.inventoryBorders = new Image[6];
+        parts.inventorySlots = new GameObject[6];
+        parts.inventoryRoot = panel;
 
         for (int i = 0; i < 6; i++)
         {
             GameObject slot = NewUI("InventorySlot", panel.transform);
-            Image border = AddImage(slot, PanelBorder, BuiltinSprite(), true);
+            Color slotColor = PanelBorder;
+            slotColor.a = 0.72f;
+            Image border = AddImage(slot, slotColor, BuiltinSprite(), true);
             border.raycastTarget = false;
 
             GameObject iconObject = NewUI("Icon", slot.transform);
-            StretchWithOffsets(iconObject.GetComponent<RectTransform>(), 3f, 3f, 20f, 3f);
+            StretchWithOffsets(iconObject.GetComponent<RectTransform>(), 3f, 3f, 3f, 3f);
             Image icon = AddImage(iconObject, Color.white, null, false);
             icon.enabled = false;
             icon.preserveAspect = true;
             icon.raycastTarget = false;
             parts.inventoryIcons[i] = icon;
             parts.inventoryBorders[i] = border;
+            parts.inventorySlots[i] = slot;
+            slot.SetActive(false);
         }
+
+        panel.SetActive(false);
     }
 
     private static WaveAnnouncementUI BuildAnnouncement(Transform canvas, TMP_FontAsset font)
@@ -629,9 +702,6 @@ public static class HUDUIBuilder
         SetRect(panel.GetComponent<RectTransform>(), anchorMin, anchorMax, pivot, position, size);
         Image image = AddImage(panel, PanelDark, BuiltinSprite(), true);
         image.raycastTarget = false;
-        Outline outline = panel.AddComponent<Outline>();
-        outline.effectColor = PanelBorder;
-        outline.effectDistance = new Vector2(1f, -1f);
         return panel;
     }
 

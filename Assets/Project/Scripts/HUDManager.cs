@@ -7,12 +7,15 @@ public class HUDManager : MonoBehaviour
 
     public Image[] inventoryIcons;
     public Image[] inventoryBorders;
+    public GameObject inventoryRoot;
+    public GameObject[] inventorySlots;
 
     private int nextInventoryIndex;
 
     private void Awake()
     {
         Instance = this;
+        SetInventoryVisibility();
     }
 
     private void OnDestroy()
@@ -32,6 +35,16 @@ public class HUDManager : MonoBehaviour
 
         int slot = nextInventoryIndex;
 
+        if (inventoryRoot != null)
+        {
+            inventoryRoot.SetActive(true);
+        }
+
+        if (inventorySlots != null && slot < inventorySlots.Length && inventorySlots[slot] != null)
+        {
+            inventorySlots[slot].SetActive(true);
+        }
+
         if (inventoryIcons[slot] != null)
         {
             inventoryIcons[slot].sprite = item.icon;
@@ -44,6 +57,27 @@ public class HUDManager : MonoBehaviour
         }
 
         nextInventoryIndex++;
+    }
+
+    private void SetInventoryVisibility()
+    {
+        if (inventoryRoot != null)
+        {
+            inventoryRoot.SetActive(false);
+        }
+
+        if (inventorySlots == null)
+        {
+            return;
+        }
+
+        foreach (GameObject slot in inventorySlots)
+        {
+            if (slot != null)
+            {
+                slot.SetActive(false);
+            }
+        }
     }
 
     private Color RarityColor(ItemSO.Rarity rarity)

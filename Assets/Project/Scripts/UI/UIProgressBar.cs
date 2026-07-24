@@ -7,11 +7,15 @@ namespace Augmentra.UI
     public sealed class UIProgressBar : MonoBehaviour
     {
         [SerializeField] private Image fill;
+        [SerializeField] private Image highlight;
         [SerializeField] private TextMeshProUGUI valueText;
         [SerializeField] private Image warningBorder;
         [SerializeField] private float fillSmoothTime = 0.12f;
         [SerializeField] private Color normalColor = Color.white;
+        [SerializeField] private Color normalHighlightColor = new Color(1f, 1f, 1f, 0.2f);
         [SerializeField] private Color unavailableColor = new Color(0.35f, 0.4f, 0.5f, 1f);
+        [SerializeField] private bool useRectTransformFill;
+        [SerializeField] private string valuePrefix;
 
         private float targetFill = 1f;
         private float displayedFill = 1f;
@@ -24,21 +28,46 @@ namespace Augmentra.UI
             Image fillImage,
             TextMeshProUGUI text,
             Image warning,
-            Color color)
+            Color color,
+            Image highlightImage = null,
+            bool driveRectTransformWidth = false,
+            string prefix = "")
         {
             fill = fillImage;
+            highlight = highlightImage;
             valueText = text;
             warningBorder = warning;
             normalColor = color;
+            useRectTransformFill = driveRectTransformWidth;
+            valuePrefix = prefix;
+
+            if (highlight != null)
+            {
+                normalHighlightColor = highlight.color;
+            }
         }
 
         public void SetValue(float current, float maximum)
         {
             targetFill = maximum > 0f ? Mathf.Clamp01(current / maximum) : 0f;
+            UpdateValueText(current, maximum);
+        }
 
+        public void SetValueImmediate(float current, float maximum)
+        {
+            targetFill = maximum > 0f ? Mathf.Clamp01(current / maximum) : 0f;
+            displayedFill = targetFill;
+            fillVelocity = 0f;
+            UpdateValueText(current, maximum);
+            ApplyVisuals();
+        }
+
+        private void UpdateValueText(float current, float maximum)
+        {
             if (valueText != null)
             {
                 valueText.text =
+                    valuePrefix +
                     Mathf.CeilToInt(Mathf.Max(0f, current)) + " / " +
                     Mathf.CeilToInt(Mathf.Max(0f, maximum));
             }
@@ -82,9 +111,18 @@ namespace Augmentra.UI
         {
             if (fill != null)
             {
-                fill.fillAmount = displayedFill;
+                ApplyFillGeometry(fill, displayedFill);
                 Color baseColor = unavailable ? unavailableColor : normalColor;
                 fill.color = Color.Lerp(baseColor, Color.white, damagePulse * 0.65f);
+            }
+
+            if (highlight != null)
+            {
+                ApplyFillGeometry(highlight, displayedFill);
+                Color baseColor = unavailable
+                    ? new Color(unavailableColor.r, unavailableColor.g, unavailableColor.b, normalHighlightColor.a)
+                    : normalHighlightColor;
+                highlight.color = Color.Lerp(baseColor, Color.white, damagePulse * 0.35f);
             }
 
             if (warningBorder != null)
@@ -97,6 +135,23 @@ namespace Augmentra.UI
                 warningBorder.color = color;
                 warningBorder.enabled = color.a > 0.001f;
             }
+        }
+
+        private void ApplyFillGeometry(Image image, float amount)
+        {
+            if (!useRectTransformFill)
+            {
+                image.fillAmount = amount;
+                return;
+            }
+
+            RectTransform rect = image.rectTransform;
+            Vector2 anchorMax = rect.anchorMax;
+            anchorMax.x = Mathf.Clamp01(amount);
+            rect.anchorMax = anchorMax;
+
+            // The solid images have no sprite border or transparent padding.
+            image.fillAmount = 1f;
         }
     }
 }
