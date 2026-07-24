@@ -11,6 +11,13 @@ public class MainMenuSceneBuilder
     {
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
+        var cameraGO = new GameObject("Main Camera", typeof(Camera));
+        cameraGO.tag = "MainCamera";
+        var cam = cameraGO.GetComponent<Camera>();
+        cam.clearFlags = CameraClearFlags.SolidColor;
+        cam.backgroundColor = Color.black;
+        cam.orthographic = true;
+
         var eventSystemGO = new GameObject("EventSystem",
             typeof(UnityEngine.EventSystems.EventSystem),
             typeof(UnityEngine.EventSystems.StandaloneInputModule));
