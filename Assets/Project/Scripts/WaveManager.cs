@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class WaveManager : MonoBehaviour
 {
@@ -25,6 +27,19 @@ public class WaveManager : MonoBehaviour
     private int enemiesAlive;
     private float countdownRemaining;
     private bool stopped;
+    private int lastCountdownSecond = -1;
+
+    public State CurrentState => state;
+    public int CurrentWave => currentWave;
+    public int EnemiesAlive => enemiesAlive;
+    public float CountdownRemaining => countdownRemaining;
+
+    public event Action<int> WaveChanged;
+    public event Action<int> EnemyCountChanged;
+    public event Action<int> CountdownChanged;
+    public event Action<State> StateChanged;
+    public event Action<int> WaveStarted;
+    public event Action<int> WaveCleared;
 
     private void Awake()
     {
@@ -49,6 +64,7 @@ public class WaveManager : MonoBehaviour
     public void StartCountdown()
     {
         currentWave++;
+        WaveChanged?.Invoke(currentWave);
         StartCoroutine(RunWave());
     }
 
@@ -65,10 +81,11 @@ public class WaveManager : MonoBehaviour
         yield return StartCoroutine(Countdown());
         if (stopped) yield break;
 
+        WaveStarted?.Invoke(currentWave);
         yield return StartCoroutine(SpawnWave());
         if (stopped) yield break;
 
-        state = State.WaitingForClear;
+        SetState(State.WaitingForClear);
 
         while (enemiesAlive > 0)
         {
@@ -76,11 +93,12 @@ public class WaveManager : MonoBehaviour
             yield return null;
         }
 
-        state = State.WaveComplete;
+        SetState(State.WaveComplete);
+        WaveCleared?.Invoke(currentWave);
 
         if (currentWave >= totalWaves)
         {
-            state = State.Victory;
+            SetState(State.Victory);
             yield break;
         }
 
@@ -100,26 +118,39 @@ public class WaveManager : MonoBehaviour
 
     private IEnumerator Countdown()
     {
-        state = State.Countdown;
+        SetState(State.Countdown);
         countdownRemaining = 3f;
+        lastCountdownSecond = -1;
 
         while (countdownRemaining > 0f)
         {
+            int shownSecond = Mathf.CeilToInt(countdownRemaining);
+
+            if (shownSecond != lastCountdownSecond)
+            {
+                lastCountdownSecond = shownSecond;
+                CountdownChanged?.Invoke(shownSecond);
+            }
+
             countdownRemaining -= Time.deltaTime;
             yield return null;
         }
+
+        countdownRemaining = 0f;
+        CountdownChanged?.Invoke(0);
     }
 
     private IEnumerator SpawnWave()
     {
-        state = State.Spawning;
+        SetState(State.Spawning);
 
         int count = GetEnemyCount(currentWave);
+        enemiesAlive = count;
+        EnemyCountChanged?.Invoke(enemiesAlive);
 
         for (int i = 0; i < count; i++)
         {
             SpawnEnemy();
-            enemiesAlive++;
             yield return new WaitForSeconds(timeBetweenSpawns);
         }
     }
@@ -158,10 +189,18 @@ public class WaveManager : MonoBehaviour
         {
             enemiesAlive = 0;
         }
+
+        EnemyCountChanged?.Invoke(enemiesAlive);
     }
 
     public int GetCurrentWave()
     {
         return currentWave;
+    }
+
+    private void SetState(State newState)
+    {
+        state = newState;
+        StateChanged?.Invoke(state);
     }
 }

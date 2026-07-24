@@ -1,0 +1,27 @@
+warning: in the working copy of 'Assets/Project/Prefabs/Enemy.prefab', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Project/Scripts/Editor/HUDUIBuilder.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Project/Scripts/GameManager.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Project/Scripts/HUDManager.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Project/Scripts/Health.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Project/Scripts/MainMenuController.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Project/Scripts/PlayerController.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Project/Scripts/Projectile.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Project/Scripts/ShopManager.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Project/Scripts/WaveManager.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scenes/MainMenu.unity', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scenes/SampleScene.unity', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Fallback.asset', LF will be replaced by CRLF the next time Git touches it
+ Assets/Project/Prefabs/Enemy.prefab                |   119 [32m+[m[31m-[m
+ Assets/Project/Scripts/Editor/HUDUIBuilder.cs      |   875 [32m+[m[31m-[m
+ Assets/Project/Scripts/GameManager.cs              |    22 [32m+[m
+ Assets/Project/Scripts/HUDManager.cs               |   180 [32m+[m[31m-[m
+ Assets/Project/Scripts/Health.cs                   |    74 [32m+[m[31m-[m
+ Assets/Project/Scripts/MainMenuController.cs       |   165 [32m+[m
+ Assets/Project/Scripts/PlayerController.cs         |    20 [32m+[m
+ Assets/Project/Scripts/Projectile.cs               |    10 [32m+[m[31m-[m
+ Assets/Project/Scripts/ShopManager.cs              |     7 [32m+[m[31m-[m
+ Assets/Project/Scripts/WaveManager.cs              |    51 [32m+[m[31m-[m
+ Assets/Scenes/MainMenu.unity                       |  7739 [32m+++++++++[m[31m-[m
+ Assets/Scenes/SampleScene.unity                    | 14398 [32m+++++++++++++++[m[31m----[m
+ .../LiberationSans SDF - Fallback.asset            |    72 [32m+[m[31m-[m
+ 13 files changed, 20072 insertions(+), 3660 deletions(-)

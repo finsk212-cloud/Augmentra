@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Augmentra.UI;
 
 public class ShopManager : MonoBehaviour
 {
@@ -129,7 +130,7 @@ public class ShopManager : MonoBehaviour
 
     private void Update()
     {
-        if (!ready || !breakActive) return;
+        if (!ready || !breakActive || PauseMenu.IsGamePaused) return;
 
         if (Input.GetKeyDown(KeyCode.B))
         {
@@ -636,9 +637,9 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        if (GameManager.Instance != null)
+        if (GameManager.Instance != null && !GameManager.Instance.TrySpendGold(item.cost))
         {
-            GameManager.Instance.gold -= item.cost;
+            return false;
         }
 
         ApplyItem(item);

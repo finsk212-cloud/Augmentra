@@ -1,4 +1,8 @@
+using System;
 using UnityEngine;
+using Augmentra.UI;
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour
@@ -62,6 +66,9 @@ public class PlayerController : MonoBehaviour
         get { return currentMana; }
     }
 
+    public float MaxMana => maxMana;
+    public event Action<float, float> ManaChanged;
+
     public float EffectiveAttackDamage
     {
         get
@@ -108,6 +115,12 @@ public class PlayerController : MonoBehaviour
         UpdateBloodstone();
         UpdateRegen();
 
+        if (PauseMenu.IsGamePaused)
+        {
+            moveInput = Vector3.zero;
+            return;
+        }
+
         bool shopOpen = ShopManager.Instance != null && ShopManager.Instance.IsShopOpen;
         bool choosing = GameManager.Instance != null && GameManager.Instance.IsChoosingUpgrade;
 
@@ -138,6 +151,7 @@ public class PlayerController : MonoBehaviour
     {
         maxMana += amount;
         currentMana = Mathf.Min(maxMana, currentMana + amount);
+        ManaChanged?.Invoke(currentMana, maxMana);
     }
 
     private void UpdateRegen()
@@ -155,7 +169,13 @@ public class PlayerController : MonoBehaviour
 
             if (manaRegen > 0f)
             {
+                float previousMana = currentMana;
                 currentMana = Mathf.Min(maxMana, currentMana + manaRegen);
+
+                if (!Mathf.Approximately(previousMana, currentMana))
+                {
+                    ManaChanged?.Invoke(currentMana, maxMana);
+                }
             }
         }
     }

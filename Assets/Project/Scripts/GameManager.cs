@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -19,6 +20,10 @@ public class GameManager : MonoBehaviour
     public GameState CurrentState { get; private set; } = GameState.Playing;
 
     public bool IsChoosingUpgrade => CurrentState == GameState.ChoosingAugment;
+    public event Action<int> GoldChanged;
+    public event Action<int> LevelChanged;
+    public event Action<int, int> ExperienceChanged;
+    public event Action<int> KillsChanged;
 
     public void SetState(GameState newState)
     {
@@ -54,6 +59,8 @@ public class GameManager : MonoBehaviour
     {
         kills++;
         gold++;
+        KillsChanged?.Invoke(kills);
+        GoldChanged?.Invoke(gold);
         SpawnGoldPopup();
 
         if (player != null && player.bloodstoneActive)
@@ -69,7 +76,22 @@ public class GameManager : MonoBehaviour
             xp = 0;
             level++;
             xpToNextLevel = Mathf.RoundToInt(xpToNextLevel * 1.4f);
+            LevelChanged?.Invoke(level);
         }
+
+        ExperienceChanged?.Invoke(xp, xpToNextLevel);
+    }
+
+    public bool TrySpendGold(int amount)
+    {
+        if (amount < 0 || gold < amount)
+        {
+            return false;
+        }
+
+        gold -= amount;
+        GoldChanged?.Invoke(gold);
+        return true;
     }
 
     private void SpawnGoldPopup()
