@@ -81,6 +81,20 @@ namespace Augmentra.UI
             }
         }
 
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (hasFocus)
+            {
+                return; // don't auto-resume - let the player manually resume
+                        // when they're ready, same as returning from Settings
+            }
+
+            if (CanPause())
+            {
+                Pause();
+            }
+        }
+
         private void OnDestroy()
         {
             if (instance != this)
