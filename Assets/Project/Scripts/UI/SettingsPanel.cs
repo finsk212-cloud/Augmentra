@@ -14,6 +14,14 @@ namespace Augmentra.UI
         [Header("Panel")]
         [SerializeField] private GameObject panelRoot;
 
+        [Header("Tabs")]
+        [SerializeField] private Button settingsTabButton;
+        [SerializeField] private Button guideTabButton;
+        [SerializeField] private GameObject settingsPage;
+        [SerializeField] private GameObject guidePage;
+        [SerializeField] private Color activeTabColor = new Color(0.95f, 0.78f, 0.35f, 1f);
+        [SerializeField] private Color inactiveTabColor = new Color(0.6f, 0.6f, 0.65f, 1f);
+
         [Header("Controls")]
         [SerializeField] private Slider masterVolumeSlider;
         [SerializeField] private TextMeshProUGUI masterVolumeValue;
@@ -65,7 +73,11 @@ namespace Augmentra.UI
             GameObject displayConfirm,
             TextMeshProUGUI displayConfirmCountdown,
             Button displayConfirmKeep,
-            Button displayConfirmRevert)
+            Button displayConfirmRevert,
+            Button settingsTab,
+            Button guideTab,
+            GameObject settingsPageObject,
+            GameObject guidePageObject)
         {
             panelRoot = root;
             masterVolumeSlider = volume;
@@ -83,6 +95,10 @@ namespace Augmentra.UI
             displayConfirmCountdownText = displayConfirmCountdown;
             displayConfirmKeepButton = displayConfirmKeep;
             displayConfirmRevertButton = displayConfirmRevert;
+            settingsTabButton = settingsTab;
+            guideTabButton = guideTab;
+            settingsPage = settingsPageObject;
+            guidePage = guidePageObject;
         }
 
         public void Open(Action closedCallback = null)
@@ -99,6 +115,7 @@ namespace Augmentra.UI
             Initialize();
             workingCopy = SettingsManager.Instance.Current.Copy();
             RefreshControls();
+            ShowSettingsTab();
 
             if (EventSystem.current != null && masterVolumeSlider != null)
             {
@@ -165,6 +182,39 @@ namespace Augmentra.UI
             backButton.onClick.AddListener(Close);
             displayConfirmKeepButton?.onClick.AddListener(KeepDisplaySettings);
             displayConfirmRevertButton?.onClick.AddListener(RevertDisplaySettings);
+            settingsTabButton?.onClick.AddListener(ShowSettingsTab);
+            guideTabButton?.onClick.AddListener(ShowGuideTab);
+        }
+
+        private void ShowSettingsTab()
+        {
+            if (settingsPage != null) settingsPage.SetActive(true);
+            if (guidePage != null) guidePage.SetActive(false);
+            SetTabColors(isSettingsActive: true);
+        }
+
+        private void ShowGuideTab()
+        {
+            if (settingsPage != null) settingsPage.SetActive(false);
+            if (guidePage != null) guidePage.SetActive(true);
+            SetTabColors(isSettingsActive: false);
+        }
+
+        private void SetTabColors(bool isSettingsActive)
+        {
+            if (settingsTabButton != null)
+            {
+                ColorBlock colors = settingsTabButton.colors;
+                colors.normalColor = isSettingsActive ? activeTabColor : inactiveTabColor;
+                settingsTabButton.colors = colors;
+            }
+
+            if (guideTabButton != null)
+            {
+                ColorBlock colors = guideTabButton.colors;
+                colors.normalColor = isSettingsActive ? inactiveTabColor : activeTabColor;
+                guideTabButton.colors = colors;
+            }
         }
 
         private bool ReferencesAreValid()

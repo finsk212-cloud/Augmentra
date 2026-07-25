@@ -46,7 +46,6 @@ namespace Augmentra.UI
 
             GameObject go = new GameObject("SceneTransition");
             instance = go.AddComponent<SceneTransition>();
-            instance.BuildUI();
         }
 
         private void Awake()

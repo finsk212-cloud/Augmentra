@@ -53,6 +53,10 @@ public static class SettingsAndPauseUISetup
         public TextMeshProUGUI displayConfirmCountdown;
         public Button displayConfirmKeep;
         public Button displayConfirmRevert;
+        public Button settingsTab;
+        public Button guideTab;
+        public GameObject settingsPage;
+        public GameObject guidePage;
     }
 
     [MenuItem("Tools/Augmentra/Setup Settings And Pause UI")]
@@ -510,32 +514,49 @@ public static class SettingsAndPauseUISetup
             new Vector2(0f, -35f),
             new Vector2(820f, 72f));
 
-        float firstRowY = -140f;
+        result.settingsTab = AddButton(
+            "SettingsTabButton", card.transform, font, "SETTINGS", Gold,
+            new Vector2(-105f, 310f), new Vector2(190f, 46f));
+        result.guideTab = AddButton(
+            "GuideTabButton", card.transform, font, "GUIDE", Grey,
+            new Vector2(105f, 310f), new Vector2(190f, 46f));
+
+        GameObject settingsPage = NewUI("SettingsPage", card.transform);
+        Stretch(settingsPage.GetComponent<RectTransform>());
+        result.settingsPage = settingsPage;
+
+        GameObject guidePage = NewUI("GuidePage", card.transform);
+        Stretch(guidePage.GetComponent<RectTransform>());
+        result.guidePage = guidePage;
+
+        float firstRowY = -215f;
         float rowSpacing = 78f;
         result.volume = AddSliderRow(
-            card.transform, font, "MASTER VOLUME", firstRowY, out result.volumeValue);
+            settingsPage.transform, font, "MASTER VOLUME", firstRowY, out result.volumeValue);
         result.fullscreen = AddToggleRow(
-            card.transform, font, "FULLSCREEN", firstRowY - rowSpacing);
+            settingsPage.transform, font, "FULLSCREEN", firstRowY - rowSpacing);
         result.resolution = AddDropdownRow(
-            card.transform, font, "RESOLUTION", firstRowY - rowSpacing * 2f);
+            settingsPage.transform, font, "RESOLUTION", firstRowY - rowSpacing * 2f);
         result.quality = AddDropdownRow(
-            card.transform, font, "QUALITY", firstRowY - rowSpacing * 3f);
+            settingsPage.transform, font, "QUALITY", firstRowY - rowSpacing * 3f);
         result.vSync = AddToggleRow(
-            card.transform, font, "VSYNC", firstRowY - rowSpacing * 4f);
+            settingsPage.transform, font, "VSYNC", firstRowY - rowSpacing * 4f);
         result.fpsLimit = AddDropdownRow(
-            card.transform, font, "FPS LIMIT", firstRowY - rowSpacing * 5f);
+            settingsPage.transform, font, "FPS LIMIT", firstRowY - rowSpacing * 5f);
         result.screenShake = AddToggleRow(
-            card.transform, font, "SCREEN SHAKE", firstRowY - rowSpacing * 6f);
+            settingsPage.transform, font, "SCREEN SHAKE", firstRowY - rowSpacing * 6f);
 
         result.back = AddButton(
             "BackButton", card.transform, font, "BACK", Grey,
             new Vector2(-280f, -385f), new Vector2(220f, 60f));
         result.reset = AddButton(
-            "ResetButton", card.transform, font, "RESET DEFAULTS", Grey,
+            "ResetButton", settingsPage.transform, font, "RESET DEFAULTS", Grey,
             new Vector2(0f, -385f), new Vector2(280f, 60f));
         result.apply = AddButton(
-            "ApplyButton", card.transform, font, "APPLY", Green,
+            "ApplyButton", settingsPage.transform, font, "APPLY", Green,
             new Vector2(280f, -385f), new Vector2(220f, 60f));
+
+        BuildGuidePage(guidePage.transform, font);
 
         BuildDisplayConfirmPanel(
             root.transform,
@@ -562,10 +583,91 @@ public static class SettingsAndPauseUISetup
             result.displayConfirmPanel,
             result.displayConfirmCountdown,
             result.displayConfirmKeep,
-            result.displayConfirmRevert);
+            result.displayConfirmRevert,
+            result.settingsTab,
+            result.guideTab,
+            result.settingsPage,
+            result.guidePage);
         UnityEventTools.AddPersistentListener(result.back.onClick, settingsPanel.Close);
         result.panel = settingsPanel;
         return result;
+    }
+
+    private static void BuildGuidePage(Transform parent, TMP_FontAsset font)
+    {
+        GameObject scrollRoot = NewUI("GuideScroll", parent);
+        SetRect(
+            scrollRoot.GetComponent<RectTransform>(),
+            new Vector2(0f, 1f),
+            new Vector2(1f, 1f),
+            new Vector2(0.5f, 1f),
+            new Vector2(0f, -170f),
+            new Vector2(-80f, 580f));
+
+        GameObject viewport = NewUI("Viewport", scrollRoot.transform);
+        Stretch(viewport.GetComponent<RectTransform>());
+        Image viewportImage = AddImage(viewport, Color.white, null, false);
+        viewportImage.color = new Color(1f, 1f, 1f, 0.01f);
+        Mask mask = viewport.AddComponent<Mask>();
+        mask.showMaskGraphic = false;
+
+        GameObject content = NewUI("Content", viewport.transform);
+        RectTransform contentRect = content.GetComponent<RectTransform>();
+        contentRect.anchorMin = new Vector2(0f, 1f);
+        contentRect.anchorMax = new Vector2(1f, 1f);
+        contentRect.pivot = new Vector2(0.5f, 1f);
+        contentRect.anchoredPosition = Vector2.zero;
+        contentRect.sizeDelta = Vector2.zero;
+
+        VerticalLayoutGroup layout = content.AddComponent<VerticalLayoutGroup>();
+        layout.spacing = 20f;
+        layout.childAlignment = TextAnchor.UpperLeft;
+        layout.childControlWidth = true;
+        layout.childControlHeight = true;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = false;
+        layout.padding = new RectOffset(4, 4, 4, 4);
+
+        ContentSizeFitter fitter = content.AddComponent<ContentSizeFitter>();
+        fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        ScrollRect scrollRect = scrollRoot.AddComponent<ScrollRect>();
+        scrollRect.horizontal = false;
+        scrollRect.viewport = viewport.GetComponent<RectTransform>();
+        scrollRect.content = contentRect;
+
+        AddGuideSection(content.transform, font, "MOVEMENT", "WASD to move");
+        AddGuideSection(content.transform, font, "AIMING", "Mouse to aim");
+        AddGuideSection(content.transform, font, "SHOOTING", "Left Click to shoot");
+    }
+
+    private static void AddGuideSection(Transform parent, TMP_FontAsset font, string header, string body)
+    {
+        GameObject section = NewUI(header.Replace(" ", string.Empty) + "Section", parent);
+        VerticalLayoutGroup layout = section.AddComponent<VerticalLayoutGroup>();
+        layout.spacing = 4f;
+        layout.childAlignment = TextAnchor.UpperLeft;
+        layout.childControlWidth = true;
+        layout.childControlHeight = true;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = false;
+
+        ContentSizeFitter fitter = section.AddComponent<ContentSizeFitter>();
+        fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        TextMeshProUGUI headerText = AddText(
+            "Header", section.transform, font, header, 22f, FontStyles.Bold, Gold);
+        headerText.alignment = TextAlignmentOptions.Left;
+        LayoutElement headerElement = headerText.gameObject.AddComponent<LayoutElement>();
+        headerElement.preferredHeight = 30f;
+
+        TextMeshProUGUI bodyText = AddText(
+            "Body", section.transform, font, body, 20f, FontStyles.Normal, SoftWhite);
+        bodyText.alignment = TextAlignmentOptions.Left;
+        LayoutElement bodyElement = bodyText.gameObject.AddComponent<LayoutElement>();
+        bodyElement.preferredHeight = 28f;
     }
 
     private static void BuildDisplayConfirmPanel(
