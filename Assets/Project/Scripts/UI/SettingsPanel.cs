@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Augmentra.Settings;
 using TMPro;
@@ -28,9 +29,18 @@ namespace Augmentra.UI
         [SerializeField] private Button resetButton;
         [SerializeField] private Button backButton;
 
+        [Header("Display Confirmation")]
+        [SerializeField] private GameObject displayConfirmPanel;
+        [SerializeField] private TextMeshProUGUI displayConfirmCountdownText;
+        [SerializeField] private Button displayConfirmKeepButton;
+        [SerializeField] private Button displayConfirmRevertButton;
+        [SerializeField] private float displayConfirmSeconds = 15f;
+
         private GameSettings workingCopy;
         private Action onClosed;
         private bool initialized;
+        private Coroutine displayConfirmRoutine;
+        private GameSettings pendingPreviousSettings;
 
         public bool IsOpen => panelRoot != null && panelRoot.activeSelf;
 
@@ -51,7 +61,11 @@ namespace Augmentra.UI
             Toggle screenShake,
             Button apply,
             Button reset,
-            Button back)
+            Button back,
+            GameObject displayConfirm,
+            TextMeshProUGUI displayConfirmCountdown,
+            Button displayConfirmKeep,
+            Button displayConfirmRevert)
         {
             panelRoot = root;
             masterVolumeSlider = volume;
@@ -65,6 +79,10 @@ namespace Augmentra.UI
             applyButton = apply;
             resetButton = reset;
             backButton = back;
+            displayConfirmPanel = displayConfirm;
+            displayConfirmCountdownText = displayConfirmCountdown;
+            displayConfirmKeepButton = displayConfirmKeep;
+            displayConfirmRevertButton = displayConfirmRevert;
         }
 
         public void Open(Action closedCallback = null)
@@ -123,6 +141,12 @@ namespace Augmentra.UI
             }
 
             initialized = true;
+
+            if (displayConfirmPanel != null)
+            {
+                displayConfirmPanel.SetActive(false);
+            }
+
             masterVolumeSlider.minValue = 0f;
             masterVolumeSlider.maxValue = 100f;
             masterVolumeSlider.wholeNumbers = true;
@@ -139,6 +163,8 @@ namespace Augmentra.UI
             applyButton.onClick.AddListener(Apply);
             resetButton.onClick.AddListener(ResetToDefaults);
             backButton.onClick.AddListener(Close);
+            displayConfirmKeepButton?.onClick.AddListener(KeepDisplaySettings);
+            displayConfirmRevertButton?.onClick.AddListener(RevertDisplaySettings);
         }
 
         private bool ReferencesAreValid()
@@ -256,9 +282,97 @@ namespace Augmentra.UI
                 return;
             }
 
+            GameSettings previous = SettingsManager.Instance.Current.Copy();
+            bool displayChanged =
+                previous.ResolutionWidth != workingCopy.ResolutionWidth ||
+                previous.ResolutionHeight != workingCopy.ResolutionHeight ||
+                previous.ResolutionRefreshRate != workingCopy.ResolutionRefreshRate ||
+                previous.Fullscreen != workingCopy.Fullscreen;
+
             SettingsManager.Instance.ApplyAndSave(workingCopy);
             workingCopy = SettingsManager.Instance.Current.Copy();
             RefreshControls();
+
+            if (displayChanged)
+            {
+                ShowDisplayConfirmation(previous);
+            }
+        }
+
+        private void ShowDisplayConfirmation(GameSettings previousSettings)
+        {
+            if (displayConfirmPanel == null)
+            {
+                return; // no UI wired up - skip the safety net rather than error
+            }
+
+            pendingPreviousSettings = previousSettings;
+
+            if (displayConfirmRoutine != null)
+            {
+                StopCoroutine(displayConfirmRoutine);
+            }
+
+            displayConfirmPanel.SetActive(true);
+            displayConfirmRoutine = StartCoroutine(CountdownRoutine());
+        }
+
+        private IEnumerator CountdownRoutine()
+        {
+            float remaining = displayConfirmSeconds;
+
+            while (remaining > 0f)
+            {
+                if (displayConfirmCountdownText != null)
+                {
+                    displayConfirmCountdownText.text =
+                        "Keep these display settings? Reverting in " +
+                        Mathf.CeilToInt(remaining) + "s";
+                }
+
+                remaining -= Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            RevertDisplaySettings();
+        }
+
+        private void KeepDisplaySettings()
+        {
+            if (displayConfirmRoutine != null)
+            {
+                StopCoroutine(displayConfirmRoutine);
+                displayConfirmRoutine = null;
+            }
+
+            if (displayConfirmPanel != null)
+            {
+                displayConfirmPanel.SetActive(false);
+            }
+
+            pendingPreviousSettings = null;
+        }
+
+        private void RevertDisplaySettings()
+        {
+            if (displayConfirmRoutine != null)
+            {
+                StopCoroutine(displayConfirmRoutine);
+                displayConfirmRoutine = null;
+            }
+
+            if (displayConfirmPanel != null)
+            {
+                displayConfirmPanel.SetActive(false);
+            }
+
+            if (pendingPreviousSettings != null)
+            {
+                SettingsManager.Instance.ApplyAndSave(pendingPreviousSettings);
+                workingCopy = SettingsManager.Instance.Current.Copy();
+                RefreshControls();
+                pendingPreviousSettings = null;
+            }
         }
 
         private void ResetToDefaults()

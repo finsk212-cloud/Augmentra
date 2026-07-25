@@ -49,6 +49,10 @@ public static class SettingsAndPauseUISetup
         public Button apply;
         public Button reset;
         public Button back;
+        public GameObject displayConfirmPanel;
+        public TextMeshProUGUI displayConfirmCountdown;
+        public Button displayConfirmKeep;
+        public Button displayConfirmRevert;
     }
 
     [MenuItem("Tools/Augmentra/Setup Settings And Pause UI")]
@@ -533,6 +537,14 @@ public static class SettingsAndPauseUISetup
             "ApplyButton", card.transform, font, "APPLY", Green,
             new Vector2(280f, -385f), new Vector2(220f, 60f));
 
+        BuildDisplayConfirmPanel(
+            root.transform,
+            font,
+            out result.displayConfirmPanel,
+            out result.displayConfirmCountdown,
+            out result.displayConfirmKeep,
+            out result.displayConfirmRevert);
+
         SettingsPanel settingsPanel = root.AddComponent<SettingsPanel>();
         settingsPanel.Configure(
             root,
@@ -546,10 +558,63 @@ public static class SettingsAndPauseUISetup
             result.screenShake,
             result.apply,
             result.reset,
-            result.back);
+            result.back,
+            result.displayConfirmPanel,
+            result.displayConfirmCountdown,
+            result.displayConfirmKeep,
+            result.displayConfirmRevert);
         UnityEventTools.AddPersistentListener(result.back.onClick, settingsPanel.Close);
         result.panel = settingsPanel;
         return result;
+    }
+
+    private static void BuildDisplayConfirmPanel(
+        Transform parent,
+        TMP_FontAsset font,
+        out GameObject panel,
+        out TextMeshProUGUI countdownText,
+        out Button keepButton,
+        out Button revertButton)
+    {
+        GameObject root = NewUI("DisplayConfirmPanel", parent);
+        Stretch(root.GetComponent<RectTransform>());
+        AddImage(root, Backdrop, null, false);
+        panel = root;
+
+        GameObject card = NewUI("DisplayConfirmCard", root.transform);
+        SetRect(
+            card.GetComponent<RectTransform>(),
+            new Vector2(0.5f, 0.5f),
+            new Vector2(0.5f, 0.5f),
+            new Vector2(0.5f, 0.5f),
+            Vector2.zero,
+            new Vector2(560f, 240f));
+        AddImage(card, Panel, BuiltinSprite(), true);
+        AddOutline(card, PanelBorder);
+
+        countdownText = AddText(
+            "CountdownText",
+            card.transform,
+            font,
+            "Keep these display settings? Reverting in 15s",
+            24f,
+            FontStyles.Bold,
+            SoftWhite);
+        SetRect(
+            countdownText.rectTransform,
+            new Vector2(0.5f, 1f),
+            new Vector2(0.5f, 1f),
+            new Vector2(0.5f, 1f),
+            new Vector2(0f, -75f),
+            new Vector2(500f, 100f));
+        countdownText.textWrappingMode = TextWrappingModes.Normal;
+
+        revertButton = AddButton(
+            "RevertButton", card.transform, font, "REVERT", Red,
+            new Vector2(-140f, -80f), new Vector2(200f, 60f));
+        keepButton = AddButton(
+            "KeepButton", card.transform, font, "KEEP", Green,
+            new Vector2(140f, -80f), new Vector2(200f, 60f));
     }
 
     private static void BuildQuitConfirmPanel(
