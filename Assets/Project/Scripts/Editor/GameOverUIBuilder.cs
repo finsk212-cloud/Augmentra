@@ -1,3 +1,4 @@
+using Augmentra.UI;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -57,6 +58,10 @@ public static class GameOverUIBuilder
         GameObject panel = NewUI("Panel", canvasGo.transform);
         Stretch(panel.GetComponent<RectTransform>());
         AddImage(panel, PanelBg, null, false);
+        CanvasGroup panelGroup = panel.AddComponent<CanvasGroup>();
+        panelGroup.alpha = 0f;
+        panelGroup.blocksRaycasts = false;
+        panelGroup.interactable = false;
 
         TextMeshProUGUI title = AddText("Title", panel.transform, font, "GAME OVER", 64f, FontStyles.Bold, HpCrimson);
         SetRect(title.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 160f), new Vector2(700f, 80f));
@@ -67,12 +72,10 @@ public static class GameOverUIBuilder
         Button restartButton = AddButton("RestartButton", panel.transform, font, "RESTART", ButtonGreen, uiSprite, new Vector2(0f, -100f));
         Button mainMenuButton = AddButton("MainMenuButton", panel.transform, font, "MAIN MENU", ButtonGrey, uiSprite, new Vector2(0f, -170f));
 
-        gameOverUI.panel = panel;
+        gameOverUI.group = panelGroup;
         gameOverUI.statsText = stats;
         gameOverUI.restartButton = restartButton;
         gameOverUI.mainMenuButton = mainMenuButton;
-
-        panel.SetActive(false);
 
         EditorUtility.SetDirty(gameOverUI);
         EditorSceneManager.MarkSceneDirty(canvasGo.scene);
