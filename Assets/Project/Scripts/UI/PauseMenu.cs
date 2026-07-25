@@ -15,6 +15,9 @@ namespace Augmentra.UI
         [SerializeField] private Button restartButton;
         [SerializeField] private Button mainMenuButton;
         [SerializeField] private Button quitButton;
+        [SerializeField] private GameObject quitConfirmPanel;
+        [SerializeField] private Button quitConfirmYesButton;
+        [SerializeField] private Button quitConfirmNoButton;
         [SerializeField] private string mainMenuSceneName = "MainMenu";
 
         private static PauseMenu instance;
@@ -41,6 +44,11 @@ namespace Augmentra.UI
                 pausePanel.SetActive(false);
             }
 
+            if (quitConfirmPanel != null)
+            {
+                quitConfirmPanel.SetActive(false);
+            }
+
             RegisterButtonListeners();
         }
 
@@ -48,6 +56,12 @@ namespace Augmentra.UI
         {
             if (!Input.GetKeyDown(KeyCode.Escape))
             {
+                return;
+            }
+
+            if (quitConfirmPanel != null && quitConfirmPanel.activeSelf)
+            {
+                CancelQuit();
                 return;
             }
 
@@ -90,6 +104,9 @@ namespace Augmentra.UI
             Button restart,
             Button mainMenu,
             Button quit,
+            GameObject quitConfirm,
+            Button quitConfirmYes,
+            Button quitConfirmNo,
             string menuSceneName)
         {
             pausePanel = panel;
@@ -99,6 +116,9 @@ namespace Augmentra.UI
             restartButton = restart;
             mainMenuButton = mainMenu;
             quitButton = quit;
+            quitConfirmPanel = quitConfirm;
+            quitConfirmYesButton = quitConfirmYes;
+            quitConfirmNoButton = quitConfirmNo;
             mainMenuSceneName = menuSceneName;
         }
 
@@ -168,7 +188,7 @@ namespace Augmentra.UI
             }
 
             PrepareForSceneChange();
-            SceneManager.LoadScene(sceneName);
+            SceneTransition.Instance.LoadScene(sceneName);
         }
 
         public void LoadMainMenu()
@@ -183,16 +203,43 @@ namespace Augmentra.UI
             }
 
             PrepareForSceneChange();
-            SceneManager.LoadScene(mainMenuSceneName);
+            SceneTransition.Instance.LoadScene(mainMenuSceneName);
         }
 
         public void QuitGame()
+        {
+            if (quitConfirmPanel != null)
+            {
+                quitConfirmPanel.SetActive(true);
+            }
+            else
+            {
+                // Fallback if no confirmation panel is wired up - quit directly
+                // rather than silently doing nothing.
+                ActuallyQuit();
+            }
+        }
+
+        private void ActuallyQuit()
         {
 #if UNITY_EDITOR
             Debug.Log("Quit Game requested. Application.Quit is ignored in the Unity Editor.", this);
 #else
             Application.Quit();
 #endif
+        }
+
+        public void ConfirmQuit()
+        {
+            ActuallyQuit();
+        }
+
+        public void CancelQuit()
+        {
+            if (quitConfirmPanel != null)
+            {
+                quitConfirmPanel.SetActive(false);
+            }
         }
 
         private void RegisterButtonListeners()
@@ -202,6 +249,8 @@ namespace Augmentra.UI
             restartButton?.onClick.AddListener(RestartRun);
             mainMenuButton?.onClick.AddListener(LoadMainMenu);
             quitButton?.onClick.AddListener(QuitGame);
+            quitConfirmYesButton?.onClick.AddListener(ConfirmQuit);
+            quitConfirmNoButton?.onClick.AddListener(CancelQuit);
         }
 
         private bool CanPause()

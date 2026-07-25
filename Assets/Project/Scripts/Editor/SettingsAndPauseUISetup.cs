@@ -29,6 +29,8 @@ public static class SettingsAndPauseUISetup
     private static readonly Color GreenHover = Hex("#24965E");
     private static readonly Color Grey = Hex("#3B3E47");
     private static readonly Color GreyHover = Hex("#50545F");
+    private static readonly Color Red = Hex("#8A2432");
+    private static readonly Color RedHover = Hex("#A62E3F");
     private static readonly Color Gold = Hex("#F2C759");
     private static readonly Color SoftWhite = Hex("#ECEFF4");
     private static readonly Color SoftGrey = Hex("#A7ADB8");
@@ -177,6 +179,12 @@ public static class SettingsAndPauseUISetup
         GameObject settingsCanvasObject = CreateCanvas(MainSettingsCanvasName, 200);
         SettingsControls controls = BuildSettingsPanel(settingsCanvasObject.transform, font);
 
+        GameObject quitConfirmPanel;
+        Button quitConfirmYes;
+        Button quitConfirmNo;
+        BuildQuitConfirmPanel(
+            settingsCanvasObject.transform, font, out quitConfirmPanel, out quitConfirmYes, out quitConfirmNo);
+
         MainMenuController controller = Object.FindFirstObjectByType<MainMenuController>();
 
         if (controller == null)
@@ -189,13 +197,19 @@ public static class SettingsAndPauseUISetup
             controls.panel,
             playButton,
             settingsButton,
-            quitButton);
+            quitButton,
+            quitConfirmPanel,
+            quitConfirmYes,
+            quitConfirmNo);
         SetPersistentListener(playButton, controller, controller.OnPlayClicked);
         SetPersistentListener(settingsButton, controller, controller.OnSettingsClicked);
         SetPersistentListener(quitButton, controller, controller.OnQuitClicked);
+        SetPersistentListener(quitConfirmYes, controller, controller.ConfirmQuit);
+        SetPersistentListener(quitConfirmNo, controller, controller.CancelQuit);
         ConfigureMenuNavigation(playButton, settingsButton, quitButton);
 
         controls.panel.gameObject.SetActive(false);
+        quitConfirmPanel.SetActive(false);
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
     }
@@ -437,6 +451,13 @@ public static class SettingsAndPauseUISetup
             new Vector2(400f, 36f));
 
         SettingsControls controls = BuildSettingsPanel(canvasObject.transform, font);
+
+        GameObject quitConfirmPanel;
+        Button quitConfirmYes;
+        Button quitConfirmNo;
+        BuildQuitConfirmPanel(
+            canvasObject.transform, font, out quitConfirmPanel, out quitConfirmYes, out quitConfirmNo);
+
         pauseMenu.Configure(
             pausePanel,
             controls.panel,
@@ -445,10 +466,14 @@ public static class SettingsAndPauseUISetup
             restart,
             mainMenu,
             quit,
+            quitConfirmPanel,
+            quitConfirmYes,
+            quitConfirmNo,
             "MainMenu");
 
         pausePanel.SetActive(false);
         controls.panel.gameObject.SetActive(false);
+        quitConfirmPanel.SetActive(false);
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
     }
@@ -525,6 +550,47 @@ public static class SettingsAndPauseUISetup
         UnityEventTools.AddPersistentListener(result.back.onClick, settingsPanel.Close);
         result.panel = settingsPanel;
         return result;
+    }
+
+    private static void BuildQuitConfirmPanel(
+        Transform parent,
+        TMP_FontAsset font,
+        out GameObject panel,
+        out Button yesButton,
+        out Button noButton)
+    {
+        GameObject root = NewUI("QuitConfirmPanel", parent);
+        Stretch(root.GetComponent<RectTransform>());
+        AddImage(root, Backdrop, null, false);
+        panel = root;
+
+        GameObject card = NewUI("QuitConfirmCard", root.transform);
+        SetRect(
+            card.GetComponent<RectTransform>(),
+            new Vector2(0.5f, 0.5f),
+            new Vector2(0.5f, 0.5f),
+            new Vector2(0.5f, 0.5f),
+            Vector2.zero,
+            new Vector2(460f, 220f));
+        AddImage(card, Panel, BuiltinSprite(), true);
+        AddOutline(card, PanelBorder);
+
+        TextMeshProUGUI message = AddText(
+            "Message", card.transform, font, "Quit to desktop?", 26f, FontStyles.Bold, SoftWhite);
+        SetRect(
+            message.rectTransform,
+            new Vector2(0.5f, 1f),
+            new Vector2(0.5f, 1f),
+            new Vector2(0.5f, 1f),
+            new Vector2(0f, -60f),
+            new Vector2(400f, 60f));
+
+        noButton = AddButton(
+            "NoButton", card.transform, font, "NO", Grey,
+            new Vector2(-110f, -70f), new Vector2(180f, 60f));
+        yesButton = AddButton(
+            "YesButton", card.transform, font, "YES", Red,
+            new Vector2(110f, -70f), new Vector2(180f, 60f));
     }
 
     private static Slider AddSliderRow(
@@ -770,11 +836,10 @@ public static class SettingsAndPauseUISetup
         button.targetGraphic = image;
 
         bool isGreen = Approximately(color, Green);
-        SetSelectableColors(
-            button,
-            color,
-            isGreen ? GreenHover : GreyHover,
-            isGreen ? Green : ControlPressed);
+        bool isRed = Approximately(color, Red);
+        Color hover = isGreen ? GreenHover : isRed ? RedHover : GreyHover;
+        Color pressed = isGreen ? Green : isRed ? Red : ControlPressed;
+        SetSelectableColors(button, color, hover, pressed);
         buttonObject.AddComponent<UIButtonFeedback>();
 
         TextMeshProUGUI buttonLabel = AddText(

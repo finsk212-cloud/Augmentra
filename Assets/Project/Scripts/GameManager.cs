@@ -136,14 +136,14 @@ public class GameManager : MonoBehaviour
     public void RestartRun()
     {
         Time.timeScale = 1f;
-        UnityEngine.SceneManagement.SceneManager.LoadScene(
+        SceneTransition.Instance.LoadScene(
             UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
     }
 
     public void ReturnToMainMenu()
     {
         Time.timeScale = 1f;
-        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+        SceneTransition.Instance.LoadScene("MainMenu");
     }
 
     private void OnDestroy()

@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Augmentra.Settings;
 using Augmentra.UI;
@@ -13,6 +12,9 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private Button playButton;
     [SerializeField] private Button settingsButton;
     [SerializeField] private Button quitButton;
+    [SerializeField] private GameObject quitConfirmPanel;
+    [SerializeField] private Button quitConfirmYesButton;
+    [SerializeField] private Button quitConfirmNoButton;
 
     private void Awake()
     {
@@ -21,9 +23,16 @@ public class MainMenuController : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
+        if (quitConfirmPanel != null)
+        {
+            quitConfirmPanel.SetActive(false);
+        }
+
         RegisterRuntimeFallback(playButton, OnPlayClicked, nameof(OnPlayClicked));
         RegisterRuntimeFallback(settingsButton, OnSettingsClicked, nameof(OnSettingsClicked));
         RegisterRuntimeFallback(quitButton, OnQuitClicked, nameof(OnQuitClicked));
+        RegisterRuntimeFallback(quitConfirmYesButton, ConfirmQuit, nameof(ConfirmQuit));
+        RegisterRuntimeFallback(quitConfirmNoButton, CancelQuit, nameof(CancelQuit));
     }
 
     private void Start()
@@ -38,9 +47,18 @@ public class MainMenuController : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape) &&
-            settingsPanel != null &&
-            settingsPanel.IsOpen)
+        if (!Input.GetKeyDown(KeyCode.Escape))
+        {
+            return;
+        }
+
+        if (quitConfirmPanel != null && quitConfirmPanel.activeSelf)
+        {
+            CancelQuit();
+            return;
+        }
+
+        if (settingsPanel != null && settingsPanel.IsOpen)
         {
             settingsPanel.Close();
         }
@@ -51,13 +69,19 @@ public class MainMenuController : MonoBehaviour
         SettingsPanel panel,
         Button play,
         Button settings,
-        Button quit)
+        Button quit,
+        GameObject quitConfirm,
+        Button quitConfirmYes,
+        Button quitConfirmNo)
     {
         mainMenuContent = content;
         settingsPanel = panel;
         playButton = play;
         settingsButton = settings;
         quitButton = quit;
+        quitConfirmPanel = quitConfirm;
+        quitConfirmYesButton = quitConfirmYes;
+        quitConfirmNoButton = quitConfirmNo;
     }
 
     public void OnPlayClicked()
@@ -71,7 +95,7 @@ public class MainMenuController : MonoBehaviour
             return;
         }
 
-        SceneManager.LoadScene(gameplaySceneName);
+        SceneTransition.Instance.LoadScene(gameplaySceneName);
     }
 
     public void OnSettingsClicked()
@@ -106,11 +130,38 @@ public class MainMenuController : MonoBehaviour
 
     public void OnQuitClicked()
     {
+        if (quitConfirmPanel != null)
+        {
+            quitConfirmPanel.SetActive(true);
+        }
+        else
+        {
+            // Fallback if no confirmation panel is wired up - quit directly
+            // rather than silently doing nothing.
+            ActuallyQuit();
+        }
+    }
+
+    private void ActuallyQuit()
+    {
 #if UNITY_EDITOR
         Debug.Log("Quit Game requested. Application.Quit is ignored in the Unity Editor.", this);
 #else
         Application.Quit();
 #endif
+    }
+
+    public void ConfirmQuit()
+    {
+        ActuallyQuit();
+    }
+
+    public void CancelQuit()
+    {
+        if (quitConfirmPanel != null)
+        {
+            quitConfirmPanel.SetActive(false);
+        }
     }
 
     private void ValidateReferences()
