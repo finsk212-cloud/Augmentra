@@ -134,6 +134,7 @@ public static class SettingsAndPauseUISetup
 
         DestroyOwnedRoot(MainSettingsCanvasName);
         DestroyOwnedRoot(MainActionsName);
+        DestroyOwnedRoot("GameOverCanvas"); // stray leftover from Game Over UI once built into this scene
 
         Canvas existingCanvas = FindExistingMainMenuCanvas();
 
