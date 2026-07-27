@@ -4,6 +4,7 @@ using UnityEngine.EventSystems;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using TMPro;
+using Augmentra.UI;
 
 public static class AugmentUIBuilder
 {
@@ -114,10 +115,12 @@ public static class AugmentUIBuilder
         GameObject root = NewUI("AugmentCard", null);
         RectTransform rootRect = root.GetComponent<RectTransform>();
         rootRect.sizeDelta = new Vector2(280f, 380f);
+        Color cardBaseColor = new Color(0.08f, 0.08f, 0.11f, 1f);
         Image bg = root.AddComponent<Image>();
-        bg.color = new Color(0.08f, 0.08f, 0.11f, 1f);
+        bg.color = cardBaseColor;
         Button button = root.AddComponent<Button>();
         button.targetGraphic = bg;
+        UIColorUtility.ApplyConsistentColors(button, cardBaseColor);
         AugmentCard card = root.AddComponent<AugmentCard>();
 
         GameObject icon = NewUI("Icon", root.transform);

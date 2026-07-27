@@ -7,6 +7,7 @@ using UnityEditor.SceneManagement;
 using UnityEditor.Events;
 using UnityEngine.SceneManagement;
 using TMPro;
+using Augmentra.UI;
 
 public static class MainMenuUIBuilder
 {
@@ -54,8 +55,10 @@ public static class MainMenuUIBuilder
 
         GameObject playGo = NewUI("PlayButton", canvasGo.transform);
         SetRect(playGo.GetComponent<RectTransform>(), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -60f), new Vector2(260f, 64f));
-        AddImage(playGo, ButtonGreen, uiSprite, true);
+        Image playImage = AddImage(playGo, ButtonGreen, uiSprite, true);
         Button playButton = playGo.AddComponent<Button>();
+        playButton.targetGraphic = playImage;
+        UIColorUtility.ApplyConsistentColors(playButton, ButtonGreen);
 
         TextMeshProUGUI playLabel = AddText("Label", playGo.transform, font, "PLAY", 26f, FontStyles.Normal, Color.white);
         Stretch(playLabel.rectTransform);

@@ -26,11 +26,9 @@ public static class SettingsAndPauseUISetup
     private static readonly Color ControlHover = Hex("#252A35");
     private static readonly Color ControlPressed = Hex("#101218");
     private static readonly Color Green = Hex("#1A7A4A");
-    private static readonly Color GreenHover = Hex("#24965E");
     private static readonly Color Grey = Hex("#3B3E47");
     private static readonly Color GreyHover = Hex("#50545F");
     private static readonly Color Red = Hex("#8A2432");
-    private static readonly Color RedHover = Hex("#A62E3F");
     private static readonly Color Gold = Hex("#F2C759");
     private static readonly Color SoftWhite = Hex("#ECEFF4");
     private static readonly Color SoftGrey = Hex("#A7ADB8");
@@ -279,7 +277,7 @@ public static class SettingsAndPauseUISetup
         image.sprite = BuiltinSprite();
         image.type = Image.Type.Sliced;
         button.targetGraphic = image;
-        SetSelectableColors(button, Grey, GreyHover, ControlPressed);
+        UIColorUtility.ApplyConsistentColors(button, Grey);
 
         TextMeshProUGUI text = button.GetComponentInChildren<TextMeshProUGUI>(true);
 
@@ -522,6 +520,13 @@ public static class SettingsAndPauseUISetup
             "GuideTabButton", card.transform, font, "GUIDE", Grey,
             new Vector2(105f, 310f), new Vector2(190f, 46f));
 
+        // SettingsPanel drives these two buttons' colors directly every time the
+        // active tab changes; UIButtonFeedback's separate select/deselect tint
+        // (cached at Awake, hardcoded gold) fights that and produces stale,
+        // mismatched colors, so it's removed for the tabs specifically.
+        RemoveButtonFeedback(result.settingsTab);
+        RemoveButtonFeedback(result.guideTab);
+
         GameObject settingsPage = NewUI("SettingsPage", card.transform);
         Stretch(settingsPage.GetComponent<RectTransform>());
         result.settingsPage = settingsPage;
@@ -592,6 +597,16 @@ public static class SettingsAndPauseUISetup
         UnityEventTools.AddPersistentListener(result.back.onClick, settingsPanel.Close);
         result.panel = settingsPanel;
         return result;
+    }
+
+    private static void RemoveButtonFeedback(Button button)
+    {
+        UIButtonFeedback feedback = button.GetComponent<UIButtonFeedback>();
+
+        if (feedback != null)
+        {
+            Object.DestroyImmediate(feedback);
+        }
     }
 
     private static void BuildGuidePage(Transform parent, TMP_FontAsset font)
@@ -1002,12 +1017,7 @@ public static class SettingsAndPauseUISetup
         Image image = AddImage(buttonObject, color, BuiltinSprite(), true);
         Button button = buttonObject.AddComponent<Button>();
         button.targetGraphic = image;
-
-        bool isGreen = Approximately(color, Green);
-        bool isRed = Approximately(color, Red);
-        Color hover = isGreen ? GreenHover : isRed ? RedHover : GreyHover;
-        Color pressed = isGreen ? Green : isRed ? Red : ControlPressed;
-        SetSelectableColors(button, color, hover, pressed);
+        UIColorUtility.ApplyConsistentColors(button, color);
         buttonObject.AddComponent<UIButtonFeedback>();
 
         TextMeshProUGUI buttonLabel = AddText(
@@ -1213,13 +1223,6 @@ public static class SettingsAndPauseUISetup
     private static Sprite BuiltinSprite()
     {
         return AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
-    }
-
-    private static bool Approximately(Color a, Color b)
-    {
-        return Mathf.Approximately(a.r, b.r) &&
-               Mathf.Approximately(a.g, b.g) &&
-               Mathf.Approximately(a.b, b.b);
     }
 
     private static Color Hex(string value)

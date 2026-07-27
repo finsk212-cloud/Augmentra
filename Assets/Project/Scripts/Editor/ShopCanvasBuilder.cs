@@ -3,6 +3,7 @@ using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using Augmentra.UI;
 
 public static class ShopCanvasBuilder
 {
@@ -221,7 +222,9 @@ public static class ShopCanvasBuilder
         GameObject go = Image("ReadyButton", parent, Green, new Vector2(118f, 44f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(8f, 10f));
         go.GetComponent<RectTransform>().pivot = new Vector2(0f, 0f);
         go.GetComponent<RectTransform>().anchoredPosition = new Vector2(8f, 10f);
-        go.AddComponent<Button>();
+        Button readyButton = go.AddComponent<Button>();
+        readyButton.targetGraphic = go.GetComponent<Image>();
+        UIColorUtility.ApplyConsistentColors(readyButton, Green);
         Text("ReadyLabel", go.transform, "READY", 18f, Color.white, new Vector2(118f, 44f), new Vector2(0.5f, 0.5f), Vector2.zero, TextAlignmentOptions.Center).raycastTarget = false;
     }
 

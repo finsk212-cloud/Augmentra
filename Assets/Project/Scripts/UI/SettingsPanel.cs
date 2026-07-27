@@ -202,19 +202,20 @@ namespace Augmentra.UI
 
         private void SetTabColors(bool isSettingsActive)
         {
-            if (settingsTabButton != null)
-            {
-                ColorBlock colors = settingsTabButton.colors;
-                colors.normalColor = isSettingsActive ? activeTabColor : inactiveTabColor;
-                settingsTabButton.colors = colors;
-            }
+            SetButtonColor(settingsTabButton, isSettingsActive ? activeTabColor : inactiveTabColor);
+            SetButtonColor(guideTabButton, isSettingsActive ? inactiveTabColor : activeTabColor);
 
-            if (guideTabButton != null)
+            // Clear the current EventSystem selection so neither tab button
+            // keeps rendering a stale "Selected" highlight after being clicked.
+            if (EventSystem.current != null)
             {
-                ColorBlock colors = guideTabButton.colors;
-                colors.normalColor = isSettingsActive ? inactiveTabColor : activeTabColor;
-                guideTabButton.colors = colors;
+                EventSystem.current.SetSelectedGameObject(null);
             }
+        }
+
+        private void SetButtonColor(Button button, Color color)
+        {
+            UIColorUtility.ApplyConsistentColors(button, color);
         }
 
         private bool ReferencesAreValid()

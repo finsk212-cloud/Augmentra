@@ -90,8 +90,10 @@ public static class GameOverUIBuilder
     {
         GameObject go = NewUI(name, parent);
         SetRect(go.GetComponent<RectTransform>(), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), pos, new Vector2(260f, 56f));
-        AddImage(go, color, uiSprite, true);
+        Image image = AddImage(go, color, uiSprite, true);
         Button button = go.AddComponent<Button>();
+        button.targetGraphic = image;
+        UIColorUtility.ApplyConsistentColors(button, color);
 
         TextMeshProUGUI text = AddText("Label", go.transform, font, label, 20f, FontStyles.Normal, Color.white);
         Stretch(text.rectTransform);
