@@ -31,6 +31,7 @@ public static class HUDUIBuilder
     private static readonly Color SoftWhite = Hex("#EDF0F5");
     private static readonly Color SoftGrey = Hex("#A6ADB8");
     private static readonly Color WarningRed = Hex("#F04455");
+    private static readonly Color ShieldColor = new Color(0.75f, 0.75f, 0.8f, 1f);
 
     private sealed class BarParts
     {
@@ -243,7 +244,8 @@ public static class HUDUIBuilder
             Vector2.zero,
             new Vector2(270f, 26f),
             true,
-            false);
+            false,
+            true);
         BarParts mana = AddBar(
             "ManaBar",
             group.transform,
@@ -252,6 +254,7 @@ public static class HUDUIBuilder
             ManaColor,
             new Vector2(0f, -34f),
             new Vector2(270f, 22f),
+            false,
             false,
             false);
         parts.healthBar = health.progressBar;
@@ -352,7 +355,8 @@ public static class HUDUIBuilder
             new Vector2(12f, -50f),
             new Vector2(205f, 14f),
             false,
-            true);
+            true,
+            false);
         parts.experienceBar = xp.progressBar;
     }
 
@@ -407,7 +411,8 @@ public static class HUDUIBuilder
         Vector2 topLeftPosition,
         Vector2 size,
         bool hasWarning,
-        bool valueOutside)
+        bool valueOutside,
+        bool hasShield)
     {
         const float innerTrackInset = 1f;
 
@@ -447,6 +452,17 @@ public static class HUDUIBuilder
         Stretch(fillObject.GetComponent<RectTransform>());
         Image fill = AddImage(fillObject, fillColor, BuiltinSprite(), true);
         fill.raycastTarget = false;
+
+        Image shieldFill = null;
+
+        if (hasShield)
+        {
+            GameObject shieldObject = NewUI("ShieldFill", fillArea.transform);
+            Stretch(shieldObject.GetComponent<RectTransform>());
+            shieldFill = AddImage(shieldObject, ShieldColor, BuiltinSprite(), true);
+            shieldFill.raycastTarget = false;
+            shieldFill.enabled = false;
+        }
 
         TextMeshProUGUI valueText;
 
@@ -492,6 +508,12 @@ public static class HUDUIBuilder
 
         UIProgressBar progressBar = root.AddComponent<UIProgressBar>();
         progressBar.Configure(fill, valueText, warning, fillColor, null, true, label + "  ");
+
+        if (shieldFill != null)
+        {
+            progressBar.SetShieldImage(shieldFill);
+        }
+
         return new BarParts { progressBar = progressBar, valueText = valueText };
     }
 

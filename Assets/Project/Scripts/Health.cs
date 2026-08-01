@@ -9,11 +9,13 @@ public class Health : MonoBehaviour
     public float shield;
 
     private float currentHealth;
+    private float maxShieldGranted;
     private bool dead;
 
     public event Action<float, float> HealthChanged;
     public event Action<float, DamageType> Damaged;
     public event Action Died;
+    public event Action<float, float> ShieldChanged;
 
     public float CurrentHealth
     {
@@ -21,6 +23,8 @@ public class Health : MonoBehaviour
     }
 
     public bool IsDead => dead;
+
+    public float MaxShieldGranted => maxShieldGranted;
 
     private void Awake()
     {
@@ -48,6 +52,7 @@ public class Health : MonoBehaviour
             float shieldAbsorbed = Mathf.Min(shield, amount);
             shield -= shieldAbsorbed;
             amount -= shieldAbsorbed;
+            ShieldChanged?.Invoke(shield, maxShieldGranted);
 
             if (amount <= 0f)
             {
@@ -105,7 +110,17 @@ public class Health : MonoBehaviour
 
     public void SetShield(float amount)
     {
+        if (shield <= 0f)
+        {
+            maxShieldGranted = amount;
+        }
+        else
+        {
+            maxShieldGranted = Mathf.Max(maxShieldGranted, amount);
+        }
+
         shield = Mathf.Max(shield, amount);
+        ShieldChanged?.Invoke(shield, maxShieldGranted);
     }
 
     public void Heal(float amount)

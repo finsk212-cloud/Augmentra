@@ -10,6 +10,11 @@ public class BulwarkAuraAugmentSO : AugmentSO
         BulwarkAuraController controller = player.gameObject.AddComponent<BulwarkAuraController>();
         controller.shieldAmount = shieldAmount;
 
+        if (player.GetComponent<ShieldVisual>() == null)
+        {
+            player.gameObject.AddComponent<ShieldVisual>();
+        }
+
         Health health = player.GetComponent<Health>();
 
         if (health != null)

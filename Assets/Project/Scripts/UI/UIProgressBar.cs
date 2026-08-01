@@ -8,12 +8,14 @@ namespace Augmentra.UI
     {
         [SerializeField] private Image fill;
         [SerializeField] private Image highlight;
+        [SerializeField] private Image shieldFill;
         [SerializeField] private TextMeshProUGUI valueText;
         [SerializeField] private Image warningBorder;
         [SerializeField] private float fillSmoothTime = 0.12f;
         [SerializeField] private Color normalColor = Color.white;
         [SerializeField] private Color normalHighlightColor = new Color(1f, 1f, 1f, 0.2f);
         [SerializeField] private Color unavailableColor = new Color(0.35f, 0.4f, 0.5f, 1f);
+        [SerializeField] private Color shieldColor = new Color(0.75f, 0.75f, 0.8f, 1f);
         [SerializeField] private bool useRectTransformFill;
         [SerializeField] private string valuePrefix;
 
@@ -71,6 +73,26 @@ namespace Augmentra.UI
                     Mathf.CeilToInt(Mathf.Max(0f, current)) + " / " +
                     Mathf.CeilToInt(Mathf.Max(0f, maximum));
             }
+        }
+
+        public void SetShieldImage(Image image)
+        {
+            shieldFill = image;
+
+            if (shieldFill != null)
+            {
+                shieldFill.color = shieldColor;
+                shieldFill.enabled = false;
+            }
+        }
+
+        public void SetShield(float current, float maximum)
+        {
+            if (shieldFill == null) return;
+
+            float amount = maximum > 0f ? Mathf.Clamp01(current / maximum) : 0f;
+            shieldFill.enabled = current > 0f;
+            ApplyFillGeometry(shieldFill, amount);
         }
 
         public void SetLowHealth(bool active)

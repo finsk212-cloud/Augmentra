@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00934be3b50fe1846bcb9677a2a5158b, type: 3}
+  m_Name: OrbitalWard
+  m_EditorClassIdentifier: 
+  augmentName: Orbital Ward
+  description: Summons 2 orbs that orbit you, damaging any enemy they touch.
+  icon: {fileID: 0}
+  rarity: 1
+  flavourText: A shield that bites back.
+  orbCount: 2
+  orbitRadius: 2.5
+  orbitSpeed: 90
+  orbDamage: 5

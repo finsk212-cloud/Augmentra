@@ -145,6 +145,7 @@ namespace Augmentra.UI
                 playerHealth.HealthChanged += OnHealthChanged;
                 playerHealth.Damaged += OnPlayerDamaged;
                 playerHealth.Died += OnPlayerDied;
+                playerHealth.ShieldChanged += OnShieldChanged;
             }
 
             if (player != null)
@@ -178,6 +179,7 @@ namespace Augmentra.UI
                 playerHealth.HealthChanged -= OnHealthChanged;
                 playerHealth.Damaged -= OnPlayerDamaged;
                 playerHealth.Died -= OnPlayerDied;
+                playerHealth.ShieldChanged -= OnShieldChanged;
             }
 
             if (player != null)
@@ -209,6 +211,7 @@ namespace Augmentra.UI
             if (playerHealth != null)
             {
                 UpdateHealth(playerHealth.CurrentHealth, playerHealth.maxHealth, immediate);
+                healthBar?.SetShield(playerHealth.shield, playerHealth.MaxShieldGranted);
             }
 
             if (player != null)
@@ -253,6 +256,11 @@ namespace Augmentra.UI
                 maximum > 0f &&
                 current / maximum < 0.3f &&
                 current > 0f);
+        }
+
+        private void OnShieldChanged(float current, float maximum)
+        {
+            healthBar?.SetShield(current, maximum);
         }
 
         private void OnPlayerDamaged(float amount, DamageType type)
