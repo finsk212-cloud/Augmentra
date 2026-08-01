@@ -6,6 +6,7 @@ public enum DamageType { Physical, Magic }
 public class Health : MonoBehaviour
 {
     public float maxHealth = 10f;
+    public float shield;
 
     private float currentHealth;
     private bool dead;
@@ -40,6 +41,19 @@ public class Health : MonoBehaviour
             float defense = damageType == DamageType.Magic ? controller.magicDefense : controller.armor;
             float reduction = Mathf.Clamp(defense * 0.5f, 0f, 80f);
             amount *= 1f - reduction / 100f;
+        }
+
+        if (shield > 0f)
+        {
+            float shieldAbsorbed = Mathf.Min(shield, amount);
+            shield -= shieldAbsorbed;
+            amount -= shieldAbsorbed;
+
+            if (amount <= 0f)
+            {
+                Damaged?.Invoke(0f, damageType);
+                return 0f;
+            }
         }
 
         float appliedDamage = Mathf.Min(currentHealth, Mathf.Max(0f, amount));
@@ -87,6 +101,11 @@ public class Health : MonoBehaviour
         }
 
         return appliedDamage;
+    }
+
+    public void SetShield(float amount)
+    {
+        shield = Mathf.Max(shield, amount);
     }
 
     public void Heal(float amount)
