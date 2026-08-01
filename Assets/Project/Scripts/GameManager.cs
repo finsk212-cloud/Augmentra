@@ -38,6 +38,22 @@ public class GameManager : MonoBehaviour
         EnemyController.SpeedMultiplier = 1f;
     }
 
+    private void OnEnable()
+    {
+        if (WaveManager.Instance != null)
+        {
+            WaveManager.Instance.StateChanged += HandleWaveStateChanged;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (WaveManager.Instance != null)
+        {
+            WaveManager.Instance.StateChanged -= HandleWaveStateChanged;
+        }
+    }
+
     private void Start()
     {
         if (player == null)
@@ -53,6 +69,20 @@ public class GameManager : MonoBehaviour
             {
                 playerTransform = playerObject.transform;
             }
+        }
+
+        if (WaveManager.Instance != null)
+        {
+            WaveManager.Instance.StateChanged -= HandleWaveStateChanged;
+            WaveManager.Instance.StateChanged += HandleWaveStateChanged;
+        }
+    }
+
+    private void HandleWaveStateChanged(WaveManager.State state)
+    {
+        if (state == WaveManager.State.Victory)
+        {
+            PlayerWon();
         }
     }
 
@@ -130,6 +160,24 @@ public class GameManager : MonoBehaviour
         if (GameOverUI.Instance != null)
         {
             GameOverUI.Instance.Show(kills, gold, level);
+        }
+    }
+
+    public void PlayerWon()
+    {
+        if (CurrentState == GameState.GameOver) return;
+
+        SetState(GameState.GameOver);
+        Time.timeScale = 0f;
+
+        if (WaveManager.Instance != null)
+        {
+            WaveManager.Instance.StopSpawning();
+        }
+
+        if (VictoryUI.Instance != null)
+        {
+            VictoryUI.Instance.Show(kills, gold, level);
         }
     }
 
