@@ -91,13 +91,22 @@ namespace Augmentra.UI
             rect.anchoredPosition = Vector2.zero;
         }
 
+        private bool isTransitioning;
+
         public void LoadScene(string sceneName)
         {
+            if (isTransitioning)
+            {
+                return;
+            }
+
             StartCoroutine(TransitionRoutine(sceneName));
         }
 
         private IEnumerator TransitionRoutine(string sceneName)
         {
+            isTransitioning = true;
+
             yield return Fade(0f, 1f);
 
             AsyncOperation load = SceneManager.LoadSceneAsync(sceneName);
@@ -108,6 +117,8 @@ namespace Augmentra.UI
             }
 
             yield return Fade(1f, 0f);
+
+            isTransitioning = false;
         }
 
         private IEnumerator Fade(float from, float to)
