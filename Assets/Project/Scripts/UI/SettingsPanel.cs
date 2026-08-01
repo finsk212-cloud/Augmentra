@@ -44,6 +44,11 @@ namespace Augmentra.UI
         [SerializeField] private Button displayConfirmRevertButton;
         [SerializeField] private float displayConfirmSeconds = 15f;
 
+        [Header("Unsaved Changes")]
+        [SerializeField] private GameObject unsavedChangesPanel;
+        [SerializeField] private Button unsavedChangesDiscardButton;
+        [SerializeField] private Button unsavedChangesKeepEditingButton;
+
         private GameSettings workingCopy;
         private Action onClosed;
         private bool initialized;
@@ -51,6 +56,8 @@ namespace Augmentra.UI
         private GameSettings pendingPreviousSettings;
 
         public bool IsOpen => panelRoot != null && panelRoot.activeSelf;
+        public bool IsUnsavedChangesPromptOpen =>
+            unsavedChangesPanel != null && unsavedChangesPanel.activeSelf;
 
         private void Awake()
         {
@@ -77,7 +84,10 @@ namespace Augmentra.UI
             Button settingsTab,
             Button guideTab,
             GameObject settingsPageObject,
-            GameObject guidePageObject)
+            GameObject guidePageObject,
+            GameObject unsavedChanges,
+            Button unsavedChangesDiscard,
+            Button unsavedChangesKeepEditing)
         {
             panelRoot = root;
             masterVolumeSlider = volume;
@@ -99,6 +109,9 @@ namespace Augmentra.UI
             guideTabButton = guideTab;
             settingsPage = settingsPageObject;
             guidePage = guidePageObject;
+            unsavedChangesPanel = unsavedChanges;
+            unsavedChangesDiscardButton = unsavedChangesDiscard;
+            unsavedChangesKeepEditingButton = unsavedChangesKeepEditing;
         }
 
         public void Open(Action closedCallback = null)
@@ -130,6 +143,29 @@ namespace Augmentra.UI
                 return;
             }
 
+            bool hasUnsavedChanges =
+                workingCopy != null &&
+                !workingCopy.Equals(SettingsManager.Instance.Current);
+
+            if (hasUnsavedChanges && unsavedChangesPanel != null)
+            {
+                unsavedChangesPanel.SetActive(true);
+                return; // don't close yet - wait for the player's choice
+            }
+
+            CloseImmediately();
+        }
+
+        public void KeepEditing()
+        {
+            if (unsavedChangesPanel != null)
+            {
+                unsavedChangesPanel.SetActive(false);
+            }
+        }
+
+        private void CloseImmediately()
+        {
             if (EventSystem.current != null)
             {
                 EventSystem.current.SetSelectedGameObject(null);
@@ -139,6 +175,16 @@ namespace Augmentra.UI
             Action callback = onClosed;
             onClosed = null;
             callback?.Invoke();
+        }
+
+        private void DiscardChangesAndClose()
+        {
+            if (unsavedChangesPanel != null)
+            {
+                unsavedChangesPanel.SetActive(false);
+            }
+
+            CloseImmediately();
         }
 
         private void Initialize()
@@ -164,6 +210,11 @@ namespace Augmentra.UI
                 displayConfirmPanel.SetActive(false);
             }
 
+            if (unsavedChangesPanel != null)
+            {
+                unsavedChangesPanel.SetActive(false);
+            }
+
             masterVolumeSlider.minValue = 0f;
             masterVolumeSlider.maxValue = 100f;
             masterVolumeSlider.wholeNumbers = true;
@@ -184,6 +235,8 @@ namespace Augmentra.UI
             displayConfirmRevertButton?.onClick.AddListener(RevertDisplaySettings);
             settingsTabButton?.onClick.AddListener(ShowSettingsTab);
             guideTabButton?.onClick.AddListener(ShowGuideTab);
+            unsavedChangesDiscardButton?.onClick.AddListener(DiscardChangesAndClose);
+            unsavedChangesKeepEditingButton?.onClick.AddListener(KeepEditing);
         }
 
         private void ShowSettingsTab()

@@ -33,5 +33,20 @@ namespace Augmentra.Settings
                 FpsLimit = 144;
             }
         }
+
+        public bool Equals(GameSettings other)
+        {
+            if (other == null) return false;
+
+            return MasterVolume == other.MasterVolume &&
+                   Fullscreen == other.Fullscreen &&
+                   ResolutionWidth == other.ResolutionWidth &&
+                   ResolutionHeight == other.ResolutionHeight &&
+                   ResolutionRefreshRate == other.ResolutionRefreshRate &&
+                   QualityLevel == other.QualityLevel &&
+                   VSync == other.VSync &&
+                   FpsLimit == other.FpsLimit &&
+                   ScreenShake == other.ScreenShake;
+        }
     }
 }

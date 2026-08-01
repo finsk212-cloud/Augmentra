@@ -100,9 +100,12 @@ public static class AugmentUIBuilder
         EditorSceneManager.MarkSceneDirty(canvasGo.scene);
         Selection.activeGameObject = managerGo;
 
-        EditorUtility.DisplayDialog("Build Augment UI",
-            "Augment UI built and wired.\n\nCanvas + overlay created, AugmentCard.prefab saved, AugmentManager added and all fields assigned.\n\nSave the scene (Ctrl+S) to keep it.",
-            "OK");
+        if (!AutomatedBuildRunner.IsAutomatedRun)
+        {
+            EditorUtility.DisplayDialog("Build Augment UI",
+                "Augment UI built and wired.\n\nCanvas + overlay created, AugmentCard.prefab saved, AugmentManager added and all fields assigned.\n\nSave the scene (Ctrl+S) to keep it.",
+                "OK");
+        }
     }
 
     private static GameObject BuildCardPrefab(TMP_FontAsset font)

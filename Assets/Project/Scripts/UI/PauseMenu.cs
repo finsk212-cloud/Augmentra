@@ -59,6 +59,12 @@ namespace Augmentra.UI
                 return;
             }
 
+            if (settingsPanel != null && settingsPanel.IsUnsavedChangesPromptOpen)
+            {
+                settingsPanel.KeepEditing();
+                return;
+            }
+
             if (quitConfirmPanel != null && quitConfirmPanel.activeSelf)
             {
                 CancelQuit();

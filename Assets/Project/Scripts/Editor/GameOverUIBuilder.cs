@@ -81,9 +81,12 @@ public static class GameOverUIBuilder
         EditorSceneManager.MarkSceneDirty(canvasGo.scene);
         Selection.activeGameObject = managerGo;
 
-        EditorUtility.DisplayDialog("Build Game Over UI",
-            "Game Over UI built and wired.\n\nGameOverUI added with panel, stats text and Restart/Main Menu buttons assigned.\n\nSave the scene (Ctrl+S) to keep it.",
-            "OK");
+        if (!AutomatedBuildRunner.IsAutomatedRun)
+        {
+            EditorUtility.DisplayDialog("Build Game Over UI",
+                "Game Over UI built and wired.\n\nGameOverUI added with panel, stats text and Restart/Main Menu buttons assigned.\n\nSave the scene (Ctrl+S) to keep it.",
+                "OK");
+        }
     }
 
     private static Button AddButton(string name, Transform parent, TMP_FontAsset font, string label, Color color, Sprite uiSprite, Vector2 pos)

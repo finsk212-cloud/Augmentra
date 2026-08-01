@@ -55,6 +55,9 @@ public static class SettingsAndPauseUISetup
         public Button guideTab;
         public GameObject settingsPage;
         public GameObject guidePage;
+        public GameObject unsavedChangesPanel;
+        public Button unsavedChangesDiscard;
+        public Button unsavedChangesKeepEditing;
     }
 
     [MenuItem("Tools/Augmentra/Setup Settings And Pause UI")]
@@ -572,6 +575,13 @@ public static class SettingsAndPauseUISetup
             out result.displayConfirmKeep,
             out result.displayConfirmRevert);
 
+        BuildUnsavedChangesPanel(
+            root.transform,
+            font,
+            out result.unsavedChangesPanel,
+            out result.unsavedChangesDiscard,
+            out result.unsavedChangesKeepEditing);
+
         SettingsPanel settingsPanel = root.AddComponent<SettingsPanel>();
         settingsPanel.Configure(
             root,
@@ -593,7 +603,10 @@ public static class SettingsAndPauseUISetup
             result.settingsTab,
             result.guideTab,
             result.settingsPage,
-            result.guidePage);
+            result.guidePage,
+            result.unsavedChangesPanel,
+            result.unsavedChangesDiscard,
+            result.unsavedChangesKeepEditing);
         UnityEventTools.AddPersistentListener(result.back.onClick, settingsPanel.Close);
         result.panel = settingsPanel;
         return result;
@@ -774,6 +787,50 @@ public static class SettingsAndPauseUISetup
         yesButton = AddButton(
             "YesButton", card.transform, font, "YES", Red,
             new Vector2(110f, -70f), new Vector2(180f, 60f));
+    }
+
+    private static void BuildUnsavedChangesPanel(
+        Transform parent,
+        TMP_FontAsset font,
+        out GameObject panel,
+        out Button discardButton,
+        out Button keepEditingButton)
+    {
+        GameObject root = NewUI("UnsavedChangesPanel", parent);
+        Stretch(root.GetComponent<RectTransform>());
+        AddImage(root, Backdrop, null, false);
+        panel = root;
+
+        GameObject card = NewUI("UnsavedChangesCard", root.transform);
+        SetRect(
+            card.GetComponent<RectTransform>(),
+            new Vector2(0.5f, 0.5f),
+            new Vector2(0.5f, 0.5f),
+            new Vector2(0.5f, 0.5f),
+            Vector2.zero,
+            new Vector2(460f, 260f));
+        AddImage(card, Panel, BuiltinSprite(), true);
+        AddOutline(card, PanelBorder);
+
+        TextMeshProUGUI message = AddText(
+            "Message", card.transform, font, "You have unsaved changes. Discard them?",
+            24f, FontStyles.Bold, SoftWhite);
+        SetRect(
+            message.rectTransform,
+            new Vector2(0.5f, 1f),
+            new Vector2(0.5f, 1f),
+            new Vector2(0.5f, 1f),
+            new Vector2(0f, -70f),
+            new Vector2(400f, 100f));
+        message.textWrappingMode = TextWrappingModes.Normal;
+        message.alignment = TextAlignmentOptions.Center;
+
+        keepEditingButton = AddButton(
+            "KeepEditingButton", card.transform, font, "KEEP EDITING", Grey,
+            new Vector2(-110f, -90f), new Vector2(180f, 60f));
+        discardButton = AddButton(
+            "DiscardButton", card.transform, font, "DISCARD", Red,
+            new Vector2(110f, -90f), new Vector2(180f, 60f));
     }
 
     private static Slider AddSliderRow(

@@ -7,10 +7,18 @@ public static class AutomatedBuildRunner
 {
     private const string GameplayScenePath = "Assets/Scenes/SampleScene.unity";
 
+    // Guards builder tools' end-of-run EditorUtility.DisplayDialog calls,
+    // which are fine for a human clicking a menu item but block the entire
+    // Editor forever when triggered automatically with nobody there to
+    // dismiss them.
+    public static bool IsAutomatedRun { get; private set; }
+
     // Invoked from the command line via:
     // -batchmode -nographics -quit -executeMethod AutomatedBuildRunner.RunAll
     public static void RunAll()
     {
+        IsAutomatedRun = true;
+
         try
         {
             SettingsAndPauseUISetup.Setup();
@@ -34,6 +42,10 @@ public static class AutomatedBuildRunner
             {
                 throw;
             }
+        }
+        finally
+        {
+            IsAutomatedRun = false;
         }
     }
 
